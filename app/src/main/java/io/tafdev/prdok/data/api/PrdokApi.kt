@@ -1,5 +1,6 @@
 package io.tafdev.prdok.data.api
 
+import io.tafdev.prdok.data.model.Credentials
 import io.tafdev.prdok.data.model.FreeShift
 import io.tafdev.prdok.data.model.Shift
 import java.io.IOException
@@ -32,6 +33,23 @@ sealed class RemoveOfferOutcome {
     /** The offer no longer exists server-side (e.g. already removed elsewhere). */
     data object NotFound : RemoveOfferOutcome()
     data class Unexpected(val serverMessage: String) : RemoveOfferOutcome()
+}
+
+/** Outcome of `akce=propojit_klicem` (pairing step 2). */
+sealed class LinkOutcome {
+    /**
+     * Success is decided solely by non-empty `ulozsi.zamid` + `ulozsi.zamids`.
+     * [provoz] and [lidauths] are null when the server sent them empty.
+     */
+    data class Linked(
+        val zamid: String,
+        val zamids: String,
+        val provoz: String?,
+        val lidauths: String?,
+    ) : LinkOutcome()
+
+    /** Wrong id/ids, no email on file, etc. — the reason is in [serverMessage]. */
+    data class Failed(val serverMessage: String) : LinkOutcome()
 }
 
 /**
@@ -82,6 +100,48 @@ class PrdokApi(
             throw PrdokApiException("Empty response from server")
         }
         ApiEnvelope.parse(body)
+    }
+
+    /**
+     * `akce=init` sent with the bootstrap [initKey] (pairing step 1). The server
+     * auto-registers a new device and returns its real key in `ulozsi.klic`.
+     * The accompanying "nerozpoznán zaměstnanec." message is expected here, not an error.
+     */
+    suspend fun initDevice(initKey: String, provoz: String): String {
+        val envelope = call(initKey, provoz, akce = "init")
+        return envelope.ulozsi["klic"]?.takeIf { it.isNotBlank() }
+            ?: throw PrdokApiException("Server did not issue a device key")
+    }
+
+    /** `akce=propojit_klicem` (pairing step 2): links device [klic] to the employee account. */
+    suspend fun linkDevice(klic: String, credentials: Credentials): LinkOutcome {
+        val parametr = listOf(
+            "zapp",
+            klic,
+            "${credentials.provoz}_zamestnanci",
+            credentials.id,
+            credentials.ids,
+            credentials.provoz,
+        ).joinToString("|")
+        val envelope = call(klic, credentials.provoz, akce = "propojit_klicem", parametr = parametr)
+
+        val zamid = envelope.ulozsi["zamid"]
+        val zamids = envelope.ulozsi["zamids"]
+        return if (!zamid.isNullOrBlank() && !zamids.isNullOrBlank()) {
+            LinkOutcome.Linked(
+                zamid = zamid,
+                zamids = zamids,
+                provoz = envelope.ulozsi["provoz"]?.takeIf { it.isNotBlank() },
+                lidauths = envelope.ulozsi["lidauths"]?.takeIf { it.isNotBlank() },
+            )
+        } else {
+            LinkOutcome.Failed(envelope.errText.ifBlank { "Pairing was refused by the server" })
+        }
+    }
+
+    /** `akce=odparovat` — unlink the device. Any 2xx counts as success. */
+    suspend fun unpair(klic: String, provoz: String) {
+        call(klic, provoz, akce = "odparovat")
     }
 
     /** `akce=mojesmeny` — all shifts (actual + planned + offered) for one month. */
