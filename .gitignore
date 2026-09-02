@@ -2,9 +2,14 @@
 .gradle
 /local.properties
 /.idea/
+/app/.idea
+.idea/misc.xml
 .DS_Store
 /build
 /captures
 .externalNativeBuild
 .cxx
 local.properties
+
+# build-time secrets (see secrets.example.properties)
+secrets.properties
