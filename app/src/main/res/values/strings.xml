@@ -1,3 +1,19 @@
 <resources>
-    <string name="app_name">Prdok for Android</string>
-</resources>
+    <string name="app_name">Prdok</string>
+    <string name="back">Back</string>
+
+    <!-- Setup / pairing -->
+    <string name="setup_welcome">Welcome to</string>
+    <string name="setup_app_name">Prdok_</string>
+    <string name="setup_access_instructions">To access the app, you need to connect the device with your employee account.</string>
+    <string name="setup_connect">Connect</string>
+    <string name="setup_pair">Pair device</string>
+    <string name="setup_switch_to_link">Pair with a link instead</string>
+    <string name="setup_switch_to_credentials">Enter credentials instead</string>
+    <string name="field_id">Employee number</string>
+    <string name="field_ids">Password</string>
+    <string name="field_provoz">Workplace</string>
+    <string name="field_link">Pairing link</string>
+    <string name="error_missing_fields">Please fill in all three fields.</string>
+    <string name="error_invalid_link">That doesn\'t look like a pairing link or QR code.</string>
+    <string name="error_pairing_failed">Pairing failed: %1$s</string>

@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">Prdok</string>
+    <string name="back">Zpět</string>
+
+    <!-- Setup / pairing -->
+    <string name="setup_welcome">Vítej v aplikaci</string>
+    <string name="setup_app_name">Prdok_</string>
+    <string name="setup_access_instructions">K získání přístupu do aplikace, je třeba propojit aplikaci se zaměstnaneckým účtem.</string>
+    <string name="setup_connect">Připojit</string>
+    <string name="setup_pair">Spárovat zařízení</string>
+    <string name="setup_switch_to_link">Raději spárovat odkazem</string>
+    <string name="setup_switch_to_credentials">Raději zadat údaje ručně</string>
+    <string name="field_id">Zaměstnanecké ćíslo</string>
+    <string name="field_ids">Heslo</string>
+    <string name="field_provoz">Provoz</string>
+    <string name="field_link">Párovací odkaz</string>
+    <string name="error_missing_fields">Vyplňte prosím všechna tři pole.</string>
+    <string name="error_invalid_link">Tohle nevypadá jako párovací odkaz ani QR kód.</string>
+    <string name="error_pairing_failed">Párování selhalo: %1$s</string>
