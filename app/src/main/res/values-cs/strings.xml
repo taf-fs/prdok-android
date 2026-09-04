@@ -17,3 +17,11 @@
     <string name="error_missing_fields">Vyplňte prosím všechna tři pole.</string>
     <string name="error_invalid_link">Tohle nevypadá jako párovací odkaz ani QR kód.</string>
     <string name="error_pairing_failed">Párování selhalo: %1$s</string>
+
+    <!-- Placeholder home -->
+    <string name="home_paired_title">Zařízení spárováno</string>
+    <string name="home_paired_details">Zaměstnanec %1$s, provoz %2$s</string>
+
+    <!-- Settings -->
+    <string name="settings_unpair">Odpárovat zařízení</string>
+</resources>

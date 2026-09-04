@@ -4,44 +4,67 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.tafdev.prdok.data.pairing.Pairing
+import io.tafdev.prdok.ui.home.HomePlaceholderScreen
+import io.tafdev.prdok.ui.setup.SetupFlow
 import io.tafdev.prdok.ui.theme.PrdokForAndroidTheme
+import kotlinx.coroutines.flow.map
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val container = (application as PrdokApp).container
         setContent {
             PrdokForAndroidTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                PrdokRoot(container)
             }
         }
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
+/** Three-way root state: still reading the store, unpaired, or paired. */
+private sealed class RootState {
+    data object Loading : RootState()
+    data class Ready(val pairing: Pairing?) : RootState()
 }
 
-@Preview(showBackground = true)
+/**
+ * Top-level switch between Setup and the main UI. It observes the PairingStore, so
+ * pairing/unpairing anywhere in the app switches screens without explicit navigation.
+ */
 @Composable
-fun GreetingPreview() {
-    PrdokForAndroidTheme {
-        Greeting("Android")
+private fun PrdokRoot(container: AppContainer) {
+    val rootFlow = remember(container) {
+        container.pairingStore.pairing.map<Pairing?, RootState> { RootState.Ready(it) }
+    }
+    val rootState by rootFlow.collectAsStateWithLifecycle(initialValue = RootState.Loading)
+
+    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+        val contentModifier = Modifier.padding(innerPadding)
+        when (val state = rootState) {
+            RootState.Loading -> Box(contentModifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+            is RootState.Ready -> {
+                val pairing = state.pairing
+                if (pairing == null) {
+                    SetupFlow(container.pairingManager, contentModifier)
+                } else {
+                    HomePlaceholderScreen(pairing, container.pairingManager, contentModifier)
+                }
+            }
+        }
     }
 }
