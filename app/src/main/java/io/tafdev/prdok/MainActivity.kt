@@ -6,9 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -16,7 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.tafdev.prdok.data.pairing.Pairing
-import io.tafdev.prdok.ui.home.HomePlaceholderScreen
+import io.tafdev.prdok.ui.main.MainScreen
 import io.tafdev.prdok.ui.setup.SetupFlow
 import io.tafdev.prdok.ui.theme.PrdokForAndroidTheme
 import kotlinx.coroutines.flow.map
@@ -51,19 +49,16 @@ private fun PrdokRoot(container: AppContainer) {
     }
     val rootState by rootFlow.collectAsStateWithLifecycle(initialValue = RootState.Loading)
 
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-        val contentModifier = Modifier.padding(innerPadding)
-        when (val state = rootState) {
-            RootState.Loading -> Box(contentModifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-            is RootState.Ready -> {
-                val pairing = state.pairing
-                if (pairing == null) {
-                    SetupFlow(container.pairingManager, contentModifier)
-                } else {
-                    HomePlaceholderScreen(pairing, container.pairingManager, contentModifier)
-                }
+    // Each branch owns its own Scaffold (top/bottom bars differ), so no outer one here.
+    when (val state = rootState) {
+        RootState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        is RootState.Ready -> {
+            if (state.pairing == null) {
+                SetupFlow(container.pairingManager)
+            } else {
+                MainScreen(container)
             }
         }
     }

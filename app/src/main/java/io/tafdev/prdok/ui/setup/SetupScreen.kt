@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -36,6 +37,8 @@ fun SetupScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
+            // No Scaffold on this screen, so keep clear of the status/navigation bars ourselves.
+            .safeDrawingPadding()
             .padding(horizontal = 16.dp)
             .padding(top = 128.dp, bottom = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,

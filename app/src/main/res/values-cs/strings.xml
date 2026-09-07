@@ -18,9 +18,6 @@
     <string name="error_invalid_link">Tohle nevypadá jako párovací odkaz ani QR kód.</string>
     <string name="error_pairing_failed">Párování selhalo: %1$s</string>
 
-    <!-- Placeholder home -->
-    <string name="home_paired_title">Zařízení spárováno</string>
-    <string name="home_paired_details">Zaměstnanec %1$s, provoz %2$s</string>
     <!-- Tabs -->
     <string name="tab_today">Dnes</string>
     <string name="tab_calendar">Kalendář</string>

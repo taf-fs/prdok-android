@@ -18,9 +18,6 @@
     <string name="error_invalid_link">That doesn\'t look like a pairing link or QR code.</string>
     <string name="error_pairing_failed">Pairing failed: %1$s</string>
 
-    <!-- Placeholder home -->
-    <string name="home_paired_title">Device paired</string>
-    <string name="home_paired_details">Employee %1$s at %2$s</string>
     <!-- Tabs -->
     <string name="tab_today">Today</string>
     <string name="tab_calendar">Calendar</string>
