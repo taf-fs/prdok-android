@@ -21,6 +21,13 @@
     <!-- Placeholder home -->
     <string name="home_paired_title">Device paired</string>
     <string name="home_paired_details">Employee %1$s at %2$s</string>
+    <!-- Tabs -->
+    <string name="tab_today">Today</string>
+    <string name="tab_calendar">Calendar</string>
+    <string name="tab_ebony">Ebony</string>
+    <string name="tab_links">Links</string>
+    <string name="coming_soon">%1$s is coming in a later phase</string>
+
     <!-- Today -->
     <string name="today_profile">Profile</string>
     <string name="today_settings">Settings</string>

@@ -21,6 +21,13 @@
     <!-- Placeholder home -->
     <string name="home_paired_title">Zařízení spárováno</string>
     <string name="home_paired_details">Zaměstnanec %1$s, provoz %2$s</string>
+    <!-- Tabs -->
+    <string name="tab_today">Dnes</string>
+    <string name="tab_calendar">Kalendář</string>
+    <string name="tab_ebony">Ebony</string>
+    <string name="tab_links">Odkazy</string>
+    <string name="coming_soon">%1$s přijde v další fázi</string>
+
     <!-- Today -->
     <string name="today_profile">Profil</string>
     <string name="today_settings">Nastavení</string>
