@@ -35,6 +35,16 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Debug-only dev pairing (see DevCredentials.kt in src/debug). Release has no
+            // such fields at all, so the release source set can't even reference them.
+            buildConfigField("boolean", "DEV_CREDENTIALS_ENABLED", secret("devCredentials.enabled").ifEmpty { "false" })
+            buildConfigField("String", "DEV_KLIC", "\"${secret("devCredentials.klic")}\"")
+            buildConfigField("String", "DEV_ID", "\"${secret("devCredentials.id")}\"")
+            buildConfigField("String", "DEV_IDS", "\"${secret("devCredentials.ids")}\"")
+            buildConfigField("String", "DEV_PROVOZ", "\"${secret("devCredentials.provoz")}\"")
+            buildConfigField("String", "DEV_SKLADNIK", "\"${secret("devCredentials.skladnik")}\"")
+        }
         release {
             optimization {
                 enable = false

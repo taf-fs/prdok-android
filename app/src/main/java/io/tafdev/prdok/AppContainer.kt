@@ -28,5 +28,7 @@ class PrdokApp : Application() {
     override fun onCreate() {
         super.onCreate()
         container = AppContainer(this)
+        // No-op in release builds; seeds a stored pairing in debug when enabled.
+        DevCredentials.applyIfEnabled(container.pairingStore)
     }
 }
