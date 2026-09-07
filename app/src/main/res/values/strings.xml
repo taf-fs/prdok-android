@@ -21,7 +21,39 @@
     <!-- Placeholder home -->
     <string name="home_paired_title">Device paired</string>
     <string name="home_paired_details">Employee %1$s at %2$s</string>
+    <!-- Today -->
+    <string name="today_profile">Profile</string>
+    <string name="today_settings">Settings</string>
+    <string name="countdown_current_ends">Current shift ends in</string>
+    <string name="countdown_next_starts">Next shift starts</string>
+    <string name="countdown_today">today</string>
+    <string name="countdown_tomorrow">tomorrow</string>
+    <string name="countdown_in">in %1$s</string>
+    <plurals name="countdown_days">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
+    <plurals name="countdown_hours">
+        <item quantity="one">%d hour</item>
+        <item quantity="other">%d hours</item>
+    </plurals>
+    <plurals name="countdown_minutes">
+        <item quantity="one">%d minute</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
+    <string name="today_no_shifts">No upcoming shifts</string>
+    <string name="today_who_is_on_shift">Who is on shift</string>
+    <string name="today_upcoming">Upcoming shifts</string>
+    <string name="error_load_failed">Couldn\'t load shifts: %1$s</string>
 
     <!-- Settings -->
+    <string name="settings_title">Settings</string>
     <string name="settings_unpair">Unpair device</string>
+    <string name="settings_unpair_confirm_title">Unpair this device?</string>
+    <string name="settings_unpair_confirm_text">You will need to pair again to see your shifts.</string>
+    <string name="settings_unpair_failed_title">Unpair failed</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="retry">Retry</string>
+
 </resources>

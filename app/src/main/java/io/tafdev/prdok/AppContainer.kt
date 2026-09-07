@@ -6,6 +6,7 @@ import io.tafdev.prdok.data.api.PrdokApi
 import io.tafdev.prdok.data.pairing.DataStorePairingStore
 import io.tafdev.prdok.data.pairing.PairingManager
 import io.tafdev.prdok.data.pairing.PairingStore
+import io.tafdev.prdok.data.shifts.ShiftRepository
 
 /**
  * Hand-rolled dependency container: one place that builds the long-lived objects
@@ -16,6 +17,7 @@ class AppContainer(context: Context) {
     val api = PrdokApi(BuildConfig.API_BASE_URL)
     val pairingStore: PairingStore = DataStorePairingStore(context)
     val pairingManager = PairingManager(api, pairingStore, BuildConfig.PAIRING_INIT_KEY)
+    val shiftRepository = ShiftRepository(api, pairingStore)
 }
 
 /** Registered in the manifest; lives for the whole process, so it's where the container is created. */

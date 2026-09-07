@@ -21,7 +21,44 @@
     <!-- Placeholder home -->
     <string name="home_paired_title">Zařízení spárováno</string>
     <string name="home_paired_details">Zaměstnanec %1$s, provoz %2$s</string>
+    <!-- Today -->
+    <string name="today_profile">Profil</string>
+    <string name="today_settings">Nastavení</string>
+    <string name="countdown_current_ends">Aktuální směna končí za</string>
+    <string name="countdown_next_starts">Další směna začíná</string>
+    <string name="countdown_today">dnes</string>
+    <string name="countdown_tomorrow">zítra</string>
+    <string name="countdown_in">za %1$s</string>
+    <plurals name="countdown_days">
+        <item quantity="one">%d den</item>
+        <item quantity="few">%d dny</item>
+        <item quantity="many">%d dne</item>
+        <item quantity="other">%d dní</item>
+    </plurals>
+    <plurals name="countdown_hours">
+        <item quantity="one">%d hodinu</item>
+        <item quantity="few">%d hodiny</item>
+        <item quantity="many">%d hodiny</item>
+        <item quantity="other">%d hodin</item>
+    </plurals>
+    <plurals name="countdown_minutes">
+        <item quantity="one">%d minutu</item>
+        <item quantity="few">%d minuty</item>
+        <item quantity="many">%d minuty</item>
+        <item quantity="other">%d minut</item>
+    </plurals>
+    <string name="today_no_shifts">Žádné nadcházející směny</string>
+    <string name="today_who_is_on_shift">Kdo má směnu</string>
+    <string name="today_upcoming">Nadcházející směny</string>
+    <string name="error_load_failed">Směny se nepodařilo načíst: %1$s</string>
 
     <!-- Settings -->
+    <string name="settings_title">Nastavení</string>
     <string name="settings_unpair">Odpárovat zařízení</string>
+    <string name="settings_unpair_confirm_title">Odpárovat toto zařízení?</string>
+    <string name="settings_unpair_confirm_text">Pro zobrazení směn bude potřeba znovu spárovat.</string>
+    <string name="settings_unpair_failed_title">Odpárování selhalo</string>
+    <string name="cancel">Zrušit</string>
+    <string name="ok">OK</string>
+    <string name="retry">Zkusit znovu</string>
 </resources>

@@ -2,8 +2,6 @@ package io.tafdev.prdok.data.pairing
 
 import io.tafdev.prdok.data.api.PrdokApi
 import io.tafdev.prdok.data.model.Credentials
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -13,14 +11,6 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-
-/** In-memory stand-in for the DataStore-backed store. */
-private class FakePairingStore : PairingStore {
-    val state = MutableStateFlow<Pairing?>(null)
-    override val pairing: Flow<Pairing?> = state
-    override suspend fun save(pairing: Pairing) { state.value = pairing }
-    override suspend fun clear() { state.value = null }
-}
 
 class PairingManagerTest {
 
