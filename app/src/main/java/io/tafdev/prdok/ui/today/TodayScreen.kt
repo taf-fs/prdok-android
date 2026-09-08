@@ -245,6 +245,73 @@ private fun remainingText(remaining: RemainingTime): String {
 }
 
 private fun Shift.timeRange(): String = "${start.format(TIME_FORMAT)} - ${end.format(TIME_FORMAT)}"
+
+// --- Previews ---------------------------------------------------------------
+// Previews render composables in the IDE without running the app. They can only be
+// used on composables that take plain data, which is why TodayContent exists.
+
+private object TodayPreviewData {
+    /** A fixed "now" so previews are deterministic: Friday 2026-09-04, 18:30 Prague. */
+    val now: ZonedDateTime = ZonedDateTime.of(2026, 9, 4, 18, 30, 0, 0, PragueTime.ZONE)
+
+    private fun shift(id: Int, date: String, from: String, to: String): Shift {
+        val start = ZonedDateTime.of(LocalDate.parse(date), LocalTime.parse(from), PragueTime.ZONE)
+        var end = ZonedDateTime.of(LocalDate.parse(date), LocalTime.parse(to), PragueTime.ZONE)
+        if (end.isBefore(start)) end = end.plusDays(1)
+        return Shift(id, ShiftKind.PLANNED, start, end)
+    }
+
+    private val laterShifts = listOf(
+        shift(2, "2026-09-06", "08:00", "16:00"),
+        shift(3, "2026-09-11", "17:00", "01:00"),
+    )
+
+    /** A shift running right now, plus two future ones. */
+    val ongoing = laterShifts + shift(1, "2026-09-04", "16:00", "23:00")
+
+    /** Nothing running; the next shift is two days out. */
+    val upcomingOnly = laterShifts
+
+    /** Builds the state the same way the ViewModel does, so previews exercise the real logic. */
+    fun state(shifts: List<Shift>) = TodayUiState(now = now, overview = TodayOverview.compute(shifts, now))
+}
+
+@Composable
+private fun PreviewTodayContent(uiState: TodayUiState) {
+    PrdokForAndroidTheme {
+        TodayContent(
+            uiState = uiState,
+            onOpenProfile = {},
+            onOpenSettings = {},
+            onWhoIsOnShift = {},
+            onRetry = {},
+        )
+    }
+}
+
+@Preview(name = "Ongoing shift", showBackground = true)
+@Composable
+private fun TodayOngoingPreview() = PreviewTodayContent(TodayPreviewData.state(TodayPreviewData.ongoing))
+
+@Preview(name = "Upcoming shift", showBackground = true)
+@Composable
+private fun TodayUpcomingPreview() = PreviewTodayContent(TodayPreviewData.state(TodayPreviewData.upcomingOnly))
+
+@Preview(name = "No shifts", showBackground = true)
+@Composable
+private fun TodayEmptyPreview() = PreviewTodayContent(TodayPreviewData.state(emptyList()))
+
+@Preview(name = "Loading", showBackground = true)
+@Composable
+private fun TodayLoadingPreview() =
+    PreviewTodayContent(TodayUiState(now = TodayPreviewData.now, isLoading = true))
+
+@Preview(name = "Error", showBackground = true)
+@Composable
+private fun TodayErrorPreview() = PreviewTodayContent(
+    TodayUiState(now = TodayPreviewData.now, errorMessage = "Network error: timeout")
+)
+
 @Preview(name = "Ongoing shift (dark)", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun TodayOngoingDarkPreview() = PreviewTodayContent(TodayPreviewData.state(TodayPreviewData.ongoing))
