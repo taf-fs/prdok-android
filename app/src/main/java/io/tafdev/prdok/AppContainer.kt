@@ -6,7 +6,9 @@ import io.tafdev.prdok.data.api.PrdokApi
 import io.tafdev.prdok.data.pairing.DataStorePairingStore
 import io.tafdev.prdok.data.pairing.PairingManager
 import io.tafdev.prdok.data.pairing.PairingStore
+import io.tafdev.prdok.data.shifts.OpenDaysRepository
 import io.tafdev.prdok.data.shifts.ShiftRepository
+import java.io.File
 
 /**
  * Hand-rolled dependency container: one place that builds the long-lived objects
@@ -16,8 +18,18 @@ import io.tafdev.prdok.data.shifts.ShiftRepository
 class AppContainer(context: Context) {
     val api = PrdokApi(BuildConfig.API_BASE_URL)
     val pairingStore: PairingStore = DataStorePairingStore(context)
-    val pairingManager = PairingManager(api, pairingStore, BuildConfig.PAIRING_INIT_KEY)
-    val shiftRepository = ShiftRepository(api, pairingStore)
+    // context.cacheDir is the OS-managed cache location: it survives restarts but the
+    // system may wipe it under storage pressure, which is exactly right for a refetchable cache.
+    private val cacheDir = File(context.cacheDir, "prdok")
+    val shiftRepository = ShiftRepository(api, pairingStore, File(cacheDir, "shifts"))
+    val openDaysRepository = OpenDaysRepository(api, pairingStore, File(cacheDir, "opendays"))
+    val pairingManager = PairingManager(
+        api, pairingStore, BuildConfig.PAIRING_INIT_KEY,
+        purgeCaches = {
+            shiftRepository.clearCache()
+            openDaysRepository.clearCache()
+        },
+    )
 }
 
 /** Registered in the manifest; lives for the whole process, so it's where the container is created. */

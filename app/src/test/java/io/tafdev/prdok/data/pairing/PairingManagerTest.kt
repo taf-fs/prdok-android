@@ -17,6 +17,7 @@ class PairingManagerTest {
     private lateinit var server: MockWebServer
     private lateinit var store: FakePairingStore
     private lateinit var manager: PairingManager
+    private var purgeCount = 0
 
     private val typed = Credentials(id = "42", ids = "typed-secret", provoz = "testprovoz")
 
@@ -29,6 +30,7 @@ class PairingManagerTest {
             api = PrdokApi(server.url("/").toString().trimEnd('/')),
             store = store,
             pairingInitKey = "INIT-KEY",
+            purgeCaches = { purgeCount++ },
         )
     }
 
@@ -140,5 +142,22 @@ class PairingManagerTest {
         val thrown = runCatching { runBlocking { manager.unpair() } }.exceptionOrNull()
         assertTrue(thrown is io.tafdev.prdok.data.api.PrdokApiException)
         assertEquals(existing, store.state.value)
+    }
+
+    @Test
+    fun `caches are purged on successful pairing and on unpair, not on failure`() = runBlocking {
+        enqueue(initResponse)
+        enqueue("""{"ulozsi":[],"err":["nenalezen zaměstnanec."]}""")
+        manager.pair(typed)
+        assertEquals(0, purgeCount)
+
+        enqueue(initResponse)
+        enqueue("""{"ulozsi":{"zamid":"99","zamids":"s"},"err":[]}""")
+        manager.pair(typed)
+        assertEquals(1, purgeCount)
+
+        enqueue("""{"ulozsi":[],"err":["Aplikace odpárována."]}""")
+        manager.unpair()
+        assertEquals(2, purgeCount)
     }
 }

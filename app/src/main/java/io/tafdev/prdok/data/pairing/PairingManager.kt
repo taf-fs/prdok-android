@@ -22,6 +22,8 @@ class PairingManager(
     private val api: PrdokApi,
     private val store: PairingStore,
     private val pairingInitKey: String,
+    /** Drops cached server data; run on unpair and on a successful (re-)pair so no account's data leaks into another's. */
+    private val purgeCaches: suspend () -> Unit = {},
 ) {
 
     suspend fun pair(credentials: Credentials): PairingResult {
@@ -32,6 +34,7 @@ class PairingManager(
             // Step 2: link that device to the employee account.
             when (val outcome = api.linkDevice(klic, credentials)) {
                 is LinkOutcome.Linked -> {
+                    purgeCaches()
                     store.save(
                         Pairing(
                             klic = klic,
@@ -59,5 +62,6 @@ class PairingManager(
         val current = store.pairing.first() ?: return
         api.unpair(current.klic, current.provoz)
         store.clear()
+        purgeCaches()
     }
 }
