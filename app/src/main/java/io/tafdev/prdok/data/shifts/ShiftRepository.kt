@@ -1,7 +1,9 @@
 package io.tafdev.prdok.data.shifts
 
+import io.tafdev.prdok.data.api.OfferOutcome
 import io.tafdev.prdok.data.api.PrdokApi
 import io.tafdev.prdok.data.api.PrdokApiException
+import io.tafdev.prdok.data.api.RemoveOfferOutcome
 import io.tafdev.prdok.data.cache.CachePolicies
 import io.tafdev.prdok.data.cache.CachedMonthSource
 import io.tafdev.prdok.data.cache.MonthFileCache
@@ -10,6 +12,7 @@ import io.tafdev.prdok.data.pairing.Pairing
 import io.tafdev.prdok.data.pairing.PairingStore
 import java.io.File
 import java.time.Clock
+import java.time.LocalDate
 import java.time.YearMonth
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -59,6 +62,21 @@ class ShiftRepository(
      */
     suspend fun shiftsForYear(year: Int): List<Shift> =
         shiftsForMonths((1..12).map { YearMonth.of(year, it) })
+
+    /**
+     * `akce=pridatmoznost`. Does not touch the cache: on [OfferOutcome.Saved] the caller
+     * re-reads the month with `forceRefresh = true` so the server stays the source of truth.
+     */
+    suspend fun offerShift(date: LocalDate, startHour: Int, endHour: Int): OfferOutcome {
+        val pairing = requirePairing()
+        return api.offerShift(pairing.klic, pairing.provoz, date, startHour, endHour)
+    }
+
+    /** `akce=smazatmoznost`; same refresh contract as [offerShift]. */
+    suspend fun removeOffer(shiftId: Int): RemoveOfferOutcome {
+        val pairing = requirePairing()
+        return api.removeOffer(pairing.klic, pairing.provoz, shiftId)
+    }
 
     /** Drops every cached month. Called on unpair / re-pair. */
     suspend fun clearCache() = source.clear()
