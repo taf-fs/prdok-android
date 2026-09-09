@@ -6,6 +6,7 @@ import io.tafdev.prdok.data.cache.CachePolicies
 import io.tafdev.prdok.data.cache.CachedMonthSource
 import io.tafdev.prdok.data.cache.MonthFileCache
 import io.tafdev.prdok.data.model.Shift
+import io.tafdev.prdok.data.pairing.Pairing
 import io.tafdev.prdok.data.pairing.PairingStore
 import java.io.File
 import java.time.Clock
@@ -43,11 +44,11 @@ class ShiftRepository(
     suspend fun shiftsForMonth(month: YearMonth, forceRefresh: Boolean = false): List<Shift> =
         source.get(month, forceRefresh)
 
-    /** Loads several months concurrently (cache hits return immediately) and flattens them. */
+    /** Loads several months concurrently (at most [MAX_CONCURRENT_FETCHES] at a time) and flattens them. */
     suspend fun shiftsForMonths(months: List<YearMonth>, forceRefresh: Boolean = false): List<Shift> =
         coroutineScope {
             months
-                .map { month -> async { shiftsForMonth(month, forceRefresh) } }
+                .map { month -> async { networkPermits.withPermit { shiftsForMonth(month, forceRefresh) } } }
                 .awaitAll()
                 .flatten()
         }
@@ -63,12 +64,12 @@ class ShiftRepository(
     suspend fun clearCache() = source.clear()
 
     private suspend fun fetchFromServer(month: YearMonth): List<Shift> {
-        val pairing = pairingStore.pairing.first()
-            ?: throw PrdokApiException("Device is not paired")
-        return networkPermits.withPermit {
-            api.fetchShifts(pairing.klic, pairing.provoz, month)
-        }
+        val pairing = requirePairing()
+        return api.fetchShifts(pairing.klic, pairing.provoz, month)
     }
+
+    private suspend fun requirePairing(): Pairing =
+        pairingStore.pairing.first() ?: throw PrdokApiException("Device is not paired")
 
     private companion object {
         const val MAX_CONCURRENT_FETCHES = 3
