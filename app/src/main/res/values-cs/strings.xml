@@ -56,6 +56,20 @@
     <string name="today_upcoming">Nadcházející směny</string>
     <string name="error_load_failed">Směny se nepodařilo načíst: %1$s</string>
 
+    <!-- Day sheet -->
+    <string name="day_offered">Nabídnutá možnost</string>
+    <string name="day_planned">Naplánovaná směna</string>
+    <string name="day_actual">Proběhlá směna</string>
+    <string name="day_show_who">Zobrazit</string>
+    <string name="day_remove_offer">Smazat</string>
+    <string name="day_offer">Nabídnout</string>
+    <string name="offer_from">začátek</string>
+    <string name="offer_to">konec</string>
+    <string name="offer_submit">Zapsat směnu</string>
+    <string name="offer_saved">Možnost uložena</string>
+    <string name="offer_removed">Možnost smazána</string>
+    <string name="offer_rejected">Možnost odmítnuta: %1$s</string>
+    <string name="offer_not_found">Tato možnost už na serveru neexistuje</string>
     <!-- Settings -->
     <string name="settings_title">Nastavení</string>
     <string name="settings_unpair">Odpárovat zařízení</string>

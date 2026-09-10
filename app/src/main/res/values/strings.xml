@@ -50,6 +50,20 @@
     <string name="today_upcoming">Upcoming shifts</string>
     <string name="error_load_failed">Couldn\'t load shifts: %1$s</string>
 
+    <!-- Day sheet -->
+    <string name="day_offered">Offered shift</string>
+    <string name="day_planned">Planned shift</string>
+    <string name="day_actual">Actual shift</string>
+    <string name="day_show_who">View</string>
+    <string name="day_remove_offer">Remove shift</string>
+    <string name="day_offer">Offer shift</string>
+    <string name="offer_from">start</string>
+    <string name="offer_to">end</string>
+    <string name="offer_submit">Submit</string>
+    <string name="offer_saved">Offer saved</string>
+    <string name="offer_removed">Offer removed</string>
+    <string name="offer_rejected">Offer refused: %1$s</string>
+    <string name="offer_not_found">That offer no longer exists on the server</string>
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="settings_unpair">Unpair device</string>
