@@ -50,6 +50,16 @@
     <string name="today_upcoming">Upcoming shifts</string>
     <string name="error_load_failed">Couldn\'t load shifts: %1$s</string>
 
+    <!-- Calendar -->
+    <string name="calendar_title">Shift calendar_</string>
+    <string name="calendar_previous_month">Previous month</string>
+    <string name="calendar_next_month">Next month</string>
+    <string name="calendar_refresh">Refresh</string>
+    <string name="calendar_refreshed">Calendar refreshed</string>
+    <string name="calendar_refresh_failed">Refresh failed: %1$s</string>
+    <string name="error_request_failed">Request failed: %1$s</string>
+    <string name="error_unexpected_response">Unexpected server response: %1$s</string>
+
     <!-- Day sheet -->
     <string name="day_offered">Offered shift</string>
     <string name="day_planned">Planned shift</string>

@@ -56,6 +56,16 @@
     <string name="today_upcoming">Nadcházející směny</string>
     <string name="error_load_failed">Směny se nepodařilo načíst: %1$s</string>
 
+    <!-- Calendar -->
+    <string name="calendar_title">Kalendář směn_</string>
+    <string name="calendar_previous_month">Předchozí měsíc</string>
+    <string name="calendar_next_month">Další měsíc</string>
+    <string name="calendar_refresh">Obnovit</string>
+    <string name="calendar_refreshed">Kalendář obnoven</string>
+    <string name="calendar_refresh_failed">Obnovení selhalo: %1$s</string>
+    <string name="error_request_failed">Požadavek selhal: %1$s</string>
+    <string name="error_unexpected_response">Neočekávaná odpověď serveru: %1$s</string>
+
     <!-- Day sheet -->
     <string name="day_offered">Nabídnutá možnost</string>
     <string name="day_planned">Naplánovaná směna</string>

@@ -27,6 +27,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.tafdev.prdok.AppContainer
 import io.tafdev.prdok.R
+import io.tafdev.prdok.ui.calendar.CalendarScreen
+import io.tafdev.prdok.ui.calendar.CalendarViewModel
 import io.tafdev.prdok.ui.settings.SettingsScreen
 import io.tafdev.prdok.ui.settings.SettingsViewModel
 import io.tafdev.prdok.ui.today.TodayScreen
@@ -81,6 +83,16 @@ fun MainScreen(container: AppContainer, modifier: Modifier = Modifier) {
                     viewModel = todayViewModel,
                     onOpenProfile = { /* Profile screen: later phase */ },
                     onOpenSettings = { showSettings = true },
+                    onWhoIsOnShift = { /* dnes.php web sheet: WebView phase */ },
+                    modifier = content,
+                )
+            }
+            MainTab.CALENDAR -> {
+                val calendarViewModel: CalendarViewModel = viewModel {
+                    CalendarViewModel(container.shiftRepository, container.openDaysRepository)
+                }
+                CalendarScreen(
+                    viewModel = calendarViewModel,
                     onWhoIsOnShift = { /* dnes.php web sheet: WebView phase */ },
                     modifier = content,
                 )
