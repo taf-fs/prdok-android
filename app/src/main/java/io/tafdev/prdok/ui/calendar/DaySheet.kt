@@ -426,3 +426,113 @@ private fun HourWheel(
 }
 
 private fun hourLabel(hour: Int) = "%02d:00".format(Locale.ROOT, hour)
+
+// --- Previews ---------------------------------------------------------------
+// DaySheetContent takes plain data, so the design tab can render every state of the
+// sheet without a ViewModel, a server, or a running emulator.
+
+private object DaySheetPreviewData {
+    val date: LocalDate = LocalDate.of(2026, 9, 13)
+
+    private var nextId = 1
+
+    private fun shift(kind: ShiftKind, from: String, to: String): Shift {
+        val start = ZonedDateTime.of(date, LocalTime.parse(from), PragueTime.ZONE)
+        var end = ZonedDateTime.of(date, LocalTime.parse(to), PragueTime.ZONE)
+        // The parser rolls the end into the next day when the shift crosses midnight.
+        if (end.isBefore(start)) end = end.plusDays(1)
+        return Shift(nextId++, kind, start, end)
+    }
+
+    val offered = shift(ShiftKind.OFFERED, "12:00", "01:00")
+    val planned = shift(ShiftKind.PLANNED, "16:00", "23:00")
+
+    /** Punch-clock times, so the pill lands on the odd minutes rather than the hour. */
+    val actual = shift(ShiftKind.ACTUAL, "15:59", "22:39")
+
+    /** A short morning shift: narrow enough to hit the minimum pill width. */
+    val shortOffer = shift(ShiftKind.OFFERED, "07:00", "09:00")
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PreviewSheet(
+    shifts: List<Shift>,
+    offering: Boolean = false,
+    isSubmitting: Boolean = false,
+) {
+    PrdokForAndroidTheme {
+        // Stands in for the sheet's own container: same surface, same drag handle.
+        Surface(color = BottomSheetDefaults.ContainerColor) {
+            Column {
+                BottomSheetDefaults.DragHandle(modifier = Modifier.align(Alignment.CenterHorizontally))
+                DaySheetContent(
+                    date = DaySheetPreviewData.date,
+                    shifts = shifts,
+                    isSubmitting = isSubmitting,
+                    offering = offering,
+                    onStartOffering = {},
+                    onOffer = { _, _, _ -> },
+                    onRemoveOffer = {},
+                    onShowWhoIsOnShift = {},
+                )
+            }
+        }
+    }
+}
+
+/** The everyday case: an offer and a rostered shift, so the only action is "remove". */
+@Preview(name = "Offered + planned", showBackground = true)
+@Composable
+private fun DaySheetOfferedAndPlannedPreview() = PreviewSheet(
+    shifts = listOf(DaySheetPreviewData.offered, DaySheetPreviewData.planned)
+)
+
+/** A worked day: all three tracks filled, the actual one on punch-clock minutes. */
+@Preview(name = "All three kinds", showBackground = true)
+@Composable
+private fun DaySheetAllKindsPreview() = PreviewSheet(
+    shifts = listOf(DaySheetPreviewData.offered, DaySheetPreviewData.planned, DaySheetPreviewData.actual)
+)
+
+/** Nothing on the day yet - the only state where "offer shift" is available. */
+@Preview(name = "Empty day", showBackground = true)
+@Composable
+private fun DaySheetEmptyPreview() = PreviewSheet(shifts = emptyList())
+
+/** Rostered but never offered: offering is closed off here too. */
+@Preview(name = "Planned only (no offer action)", showBackground = true)
+@Composable
+private fun DaySheetPlannedOnlyPreview() = PreviewSheet(shifts = listOf(DaySheetPreviewData.planned))
+
+/** Two offers on one day, the short one stretched to the minimum pill width. */
+@Preview(name = "Two offers", showBackground = true)
+@Composable
+private fun DaySheetTwoOffersPreview() = PreviewSheet(
+    shifts = listOf(DaySheetPreviewData.offered, DaySheetPreviewData.shortOffer)
+)
+
+/** The expanded state: hour pickers and the submit row. */
+@Preview(name = "Offer form", showBackground = true)
+@Composable
+private fun DaySheetOfferFormPreview() = PreviewSheet(shifts = emptyList(), offering = true)
+
+/** Mid-request: the remove action shows its spinner and everything is disabled. */
+@Preview(name = "Submitting", showBackground = true)
+@Composable
+private fun DaySheetSubmittingPreview() = PreviewSheet(
+    shifts = listOf(DaySheetPreviewData.offered),
+    isSubmitting = true,
+)
+
+@Preview(name = "Czech", showBackground = true, locale = "cs")
+@Composable
+private fun DaySheetCzechPreview() = PreviewSheet(
+    shifts = listOf(DaySheetPreviewData.offered, DaySheetPreviewData.planned)
+)
+
+@Preview(name = "Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun DaySheetDarkPreview() = PreviewSheet(
+    shifts = listOf(DaySheetPreviewData.offered, DaySheetPreviewData.planned, DaySheetPreviewData.actual)
+)

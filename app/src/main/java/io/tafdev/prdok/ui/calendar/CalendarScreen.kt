@@ -342,3 +342,30 @@ private fun DayCell(
     }
 }
 
+// --- Previews ---------------------------------------------------------------
+
+private val previewState = CalendarUiState(
+    today = LocalDate.of(2026, 9, 8),
+    displayedMonth = YearMonth.of(2026, 9),
+    selectedDate = LocalDate.of(2026, 9, 12),
+    shiftDays = ShiftDays(
+        planned = setOf(LocalDate.of(2026, 9, 12), LocalDate.of(2026, 9, 13)),
+        offered = setOf(LocalDate.of(2026, 9, 19), LocalDate.of(2026, 9, 20)),
+        actual = setOf(LocalDate.of(2026, 9, 5)),
+    ),
+    statistics = MonthStatistics.compute(emptyList(), YearMonth.of(2026, 9), 26),
+)
+
+@Preview(showBackground = true)
+@Composable
+private fun CalendarContentPreview() {
+    PrdokForAndroidTheme {
+        CalendarContent(
+            uiState = previewState,
+            snackbarHostState = remember { SnackbarHostState() },
+            onMonthDisplayed = {},
+            onSelectDate = {},
+            onRefresh = {},
+        )
+    }
+}
