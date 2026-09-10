@@ -1,13 +1,16 @@
 package io.tafdev.prdok.data.shifts
 
+import io.tafdev.prdok.data.api.OfferOutcome
 import io.tafdev.prdok.data.api.PrdokApi
 import io.tafdev.prdok.data.api.PrdokApiException
+import io.tafdev.prdok.data.api.RemoveOfferOutcome
 import io.tafdev.prdok.data.pairing.FakePairingStore
 import io.tafdev.prdok.data.pairing.Pairing
 import java.io.File
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
+import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneOffset
 import kotlinx.coroutines.runBlocking
@@ -166,6 +169,27 @@ class ShiftRepositoryTest {
             runBlocking { repository.shiftsForMonth(september) }
         }
         assertEquals(0, server.requestCount)
+    }
+
+    @Test
+    fun `offer and remove use the stored pairing and leave the cache alone`() = runBlocking {
+        server.enqueue(month(1))
+        repository.shiftsForMonth(september)
+        server.takeRequest()
+
+        server.enqueue(MockResponse().setBody("""{"ulozsi":[],"err":"ukládám možnost."}"""))
+        assertEquals(OfferOutcome.Saved, repository.offerShift(LocalDate.of(2026, 9, 20), 16, 23))
+        val offerBody = server.takeRequest().body.readUtf8()
+        assertTrue(offerBody.contains("klic=7abc"))
+        assertTrue(offerBody.contains("akce=pridatmoznost"))
+
+        server.enqueue(MockResponse().setBody("""{"ulozsi":[],"err":"mažu možnost."}"""))
+        assertEquals(RemoveOfferOutcome.Removed, repository.removeOffer(4242))
+        assertTrue(server.takeRequest().body.readUtf8().contains("smenaid=4242"))
+
+        // The cached month is untouched: the caller decides when to force-refresh.
+        assertEquals(listOf(1), repository.shiftsForMonth(september).map { it.id })
+        assertEquals(3, server.requestCount)
     }
 
     @Test
