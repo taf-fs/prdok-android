@@ -70,6 +70,17 @@
     <string name="offer_removed">Možnost smazána</string>
     <string name="offer_rejected">Možnost odmítnuta: %1$s</string>
     <string name="offer_not_found">Tato možnost už na serveru neexistuje</string>
+
+    <!-- Statistics -->
+    <string name="stats_weekend_hours">Víkendových hodin</string>
+    <string name="stats_closing_shifts">Zavíračky</string>
+    <string name="stats_total_hours">Celkem</string>
+    <!-- Unit words after a "value/required" pair; kept short so the whole row fits one line. -->
+    <string name="stats_suffix_offered">nab.</string>
+    <string name="stats_suffix_actual">odp.</string>
+    <string name="stats_or">nebo</string>
+    <string name="stats_planned_inline">(%1$d plán.)</string>
+
     <!-- Settings -->
     <string name="settings_title">Nastavení</string>
     <string name="settings_unpair">Odpárovat zařízení</string>

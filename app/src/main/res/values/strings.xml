@@ -64,6 +64,17 @@
     <string name="offer_removed">Offer removed</string>
     <string name="offer_rejected">Offer refused: %1$s</string>
     <string name="offer_not_found">That offer no longer exists on the server</string>
+
+    <!-- Statistics -->
+    <string name="stats_weekend_hours">Weekend hours</string>
+    <string name="stats_closing_shifts">Closings</string>
+    <string name="stats_total_hours">Total</string>
+    <!-- Unit words after a "value/required" pair; kept short so the whole row fits one line. -->
+    <string name="stats_suffix_offered">offr.</string>
+    <string name="stats_suffix_actual">wrk.</string>
+    <string name="stats_or">or</string>
+    <string name="stats_planned_inline">(%1$d pln.)</string>
+
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="settings_unpair">Unpair device</string>
