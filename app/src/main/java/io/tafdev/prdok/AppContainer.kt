@@ -3,9 +3,12 @@ package io.tafdev.prdok
 import android.app.Application
 import android.content.Context
 import io.tafdev.prdok.data.api.PrdokApi
+import io.tafdev.prdok.data.export.ContentResolverCalendarStore
+import io.tafdev.prdok.data.export.ShiftCalendarExporter
 import io.tafdev.prdok.data.pairing.DataStorePairingStore
 import io.tafdev.prdok.data.pairing.PairingManager
 import io.tafdev.prdok.data.pairing.PairingStore
+import io.tafdev.prdok.data.shifts.FreeShiftRepository
 import io.tafdev.prdok.data.shifts.OpenDaysRepository
 import io.tafdev.prdok.data.shifts.ShiftRepository
 import java.io.File
@@ -23,6 +26,11 @@ class AppContainer(context: Context) {
     private val cacheDir = File(context.cacheDir, "prdok")
     val shiftRepository = ShiftRepository(api, pairingStore, File(cacheDir, "shifts"))
     val openDaysRepository = OpenDaysRepository(api, pairingStore, File(cacheDir, "opendays"))
+    val freeShiftRepository = FreeShiftRepository(api, pairingStore)
+    val shiftCalendarExporter = ShiftCalendarExporter(
+        shiftRepository,
+        ContentResolverCalendarStore(context.contentResolver),
+    )
     val pairingManager = PairingManager(
         api, pairingStore, BuildConfig.PAIRING_INIT_KEY,
         purgeCaches = {
