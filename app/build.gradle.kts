@@ -80,6 +80,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kizitonwose.calendar.compose)
     implementation(libs.wheel.picker.compose)
+    implementation(libs.androidx.webkit)
     testImplementation(libs.junit)
     testImplementation(libs.okhttp.mockwebserver)
     androidTestImplementation(platform(libs.androidx.compose.bom))
