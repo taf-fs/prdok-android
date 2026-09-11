@@ -67,7 +67,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
 
-private val OfferedColor = Color(0xFF66FF33).copy(alpha = 0.5f)
+internal val OfferedColor = Color(0xFF66FF33).copy(alpha = 0.5f)
 private val PlannedColor = Color(0xFF4CC417).copy(alpha = 0.5f)
 private val ActualColor = Color(0xFFBDB76B).copy(alpha = 0.5f)
 
@@ -244,7 +244,7 @@ private fun ShiftSection(
             Spacer(Modifier.weight(1f))
             action?.invoke()
         }
-        ShiftIndicator(shifts = shifts, color = color)
+        ShiftIndicator(spans = shifts.map { it.span() }, color = color)
     }
 }
 
@@ -277,17 +277,23 @@ private fun SectionAction(
 }
 
 @Composable
-private fun sectionTextStyle(): TextStyle = MaterialTheme.typography.bodySmall.copy(
+internal fun sectionTextStyle(): TextStyle = MaterialTheme.typography.bodySmall.copy(
     fontFamily = FontFamily.Monospace,
     fontWeight = FontWeight.SemiBold,
 )
 
 /**
- * One track per section: every shift of that kind becomes a pill placed and sized by
- * [ShiftTimeline], with its time range printed inside.
+ * One track per section: every span becomes a pill placed and sized by
+ * [ShiftTimeline], with its time range printed inside. Shared with the free-shifts
+ * list, whose narrower tracks can't fit the label, so it prints the time elsewhere.
  */
 @Composable
-private fun ShiftIndicator(shifts: List<Shift>, color: Color, modifier: Modifier = Modifier) {
+internal fun ShiftIndicator(
+    spans: List<TimeSpan>,
+    color: Color,
+    modifier: Modifier = Modifier,
+    showLabels: Boolean = true,
+) {
     BoxWithConstraints(
         modifier = modifier
             .fillMaxWidth()
@@ -298,14 +304,14 @@ private fun ShiftIndicator(shifts: List<Shift>, color: Color, modifier: Modifier
             ),
         contentAlignment = Alignment.Center,
     ) {
-        if (shifts.isEmpty()) {
+        if (spans.isEmpty()) {
             Text(text = "–", style = sectionTextStyle())
             return@BoxWithConstraints
         }
         // BoxWithConstraints hands us the settled track width, which is what turns
         // ShiftTimeline's 0..1 fractions into real dp.
         val trackWidth: Dp = maxWidth
-        shifts.forEach { shift ->
+        spans.forEach { shift ->
             val range = ShiftTimeline.normalizedRange(shift.start, shift.end)
             val pillWidth = (trackWidth * (range.end - range.start)).coerceIn(MIN_PILL_WIDTH, trackWidth)
             // Keep the pill inside the track when the minimum width pushes it past an edge.
@@ -320,19 +326,21 @@ private fun ShiftIndicator(shifts: List<Shift>, color: Color, modifier: Modifier
                     .background(color, RoundedCornerShape(minOf(TRACK_CORNER, pillWidth / 2, TRACK_HEIGHT / 2))),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(
-                    text = shift.timeRange(),
-                    style = sectionTextStyle(),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    // Narrow pills let the label spill out rather than wrapping it.
-                    softWrap = false,
-                )
+                if (showLabels) {
+                    Text(
+                        text = shift.timeRange(),
+                        style = sectionTextStyle(),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        // Narrow pills let the label spill out rather than wrapping it.
+                        softWrap = false,
+                    )
+                }
             }
         }
     }
 }
 
-private fun Shift.timeRange(): String = "${start.format(TIME_FORMAT)} - ${end.format(TIME_FORMAT)}"
+internal fun TimeSpan.timeRange(): String = "${start.format(TIME_FORMAT)} - ${end.format(TIME_FORMAT)}"
 
 @Composable
 private fun OfferForm(

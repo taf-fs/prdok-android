@@ -1,7 +1,18 @@
 package io.tafdev.prdok.ui.calendar
 
+import io.tafdev.prdok.data.model.FreeShift
+import io.tafdev.prdok.data.model.Shift
 import java.time.Duration
 import java.time.ZonedDateTime
+
+/**
+ * The one thing the time track needs from any kind of shift: when it starts and ends.
+ * Both [Shift] and [FreeShift] convert to it, so one pill composable serves both.
+ */
+data class TimeSpan(val start: ZonedDateTime, val end: ZonedDateTime)
+
+fun Shift.span() = TimeSpan(start, end)
+fun FreeShift.span() = TimeSpan(start, end)
 
 /**
  * Places a shift on the day sheet's time track as two fractions of its width.
