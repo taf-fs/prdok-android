@@ -58,7 +58,7 @@ private fun PrdokRoot(container: AppContainer) {
             if (state.pairing == null) {
                 SetupFlow(container.pairingManager)
             } else {
-                MainScreen(container)
+                MainScreen(container, state.pairing)
             }
         }
     }

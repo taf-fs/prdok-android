@@ -21,9 +21,20 @@
     <!-- Tabs -->
     <string name="tab_today">Dnes</string>
     <string name="tab_calendar">Kalendář</string>
-    <string name="tab_ebony">Ebony</string>
+    <string name="tab_ebony">eBony</string>
     <string name="tab_links">Odkazy</string>
-    <string name="coming_soon">%1$s přijde v další fázi</string>
+
+    <!-- Links -->
+    <string name="links_title">Odkazy</string>
+    <string name="link_employee_web">Zaměstnanecký web</string>
+    <string name="link_contacts">Kontakty</string>
+    <string name="link_forum">Fórum</string>
+
+    <!-- In-app browser -->
+    <string name="browser_close">Zavřít</string>
+    <string name="browser_reload">Načíst znovu</string>
+    <string name="browser_load_failed">Stránku se nepodařilo načíst.</string>
+    <string name="browser_session_failed">Nepodařilo se přihlásit do zaměstnaneckého portálu: %1$s</string>
 
     <!-- Today -->
     <string name="today_profile">Profil</string>

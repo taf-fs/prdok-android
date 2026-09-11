@@ -9,7 +9,10 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -55,4 +58,22 @@ fun PrdokForAndroidTheme(
         typography = Typography,
         content = content
     )
+}
+
+/**
+ * Status and navigation bar icons follow the *system* dark mode (enableEdgeToEdge sets them up
+ * that way). When the app overrides its own theme, the icons have to be told too, or they
+ * turn white on a light background and vanish.
+ */
+@Composable
+fun SystemBarsAppearance(darkTheme: Boolean) {
+    val view = LocalView.current
+    if (view.isInEditMode) return
+    SideEffect {
+        val window = (view.context as Activity).window
+        WindowCompat.getInsetsController(window, view).apply {
+            isAppearanceLightStatusBars = !darkTheme
+            isAppearanceLightNavigationBars = !darkTheme
+        }
+    }
 }

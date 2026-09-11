@@ -21,9 +21,20 @@
     <!-- Tabs -->
     <string name="tab_today">Today</string>
     <string name="tab_calendar">Calendar</string>
-    <string name="tab_ebony">Ebony</string>
+    <string name="tab_ebony">eBony</string>
     <string name="tab_links">Links</string>
-    <string name="coming_soon">%1$s is coming in a later phase</string>
+
+    <!-- Links -->
+    <string name="links_title">Links</string>
+    <string name="link_employee_web">Employee site</string>
+    <string name="link_contacts">Contacts</string>
+    <string name="link_forum">Employee forum</string>
+
+    <!-- In-app browser -->
+    <string name="browser_close">Close</string>
+    <string name="browser_reload">Reload</string>
+    <string name="browser_load_failed">The page couldn\'t be loaded.</string>
+    <string name="browser_session_failed">Couldn\'t sign in to the employee portal: %1$s</string>
 
     <!-- Today -->
     <string name="today_profile">Profile</string>

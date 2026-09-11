@@ -2,8 +2,8 @@ package io.tafdev.prdok.ui.main
 
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
@@ -18,22 +18,31 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.tafdev.prdok.AppContainer
 import io.tafdev.prdok.R
+import io.tafdev.prdok.data.pairing.Pairing
+import io.tafdev.prdok.data.portal.PortalPage
 import io.tafdev.prdok.ui.calendar.CalendarScreen
 import io.tafdev.prdok.ui.calendar.CalendarViewModel
 import io.tafdev.prdok.ui.calendar.ExportViewModel
+import io.tafdev.prdok.ui.ebony.EbonyScreen
+import io.tafdev.prdok.ui.ebony.rememberEbonyPageState
+import io.tafdev.prdok.ui.links.LinksScreen
+import io.tafdev.prdok.ui.links.PortalLink
 import io.tafdev.prdok.ui.settings.SettingsScreen
 import io.tafdev.prdok.ui.settings.SettingsViewModel
+import io.tafdev.prdok.ui.theme.PrdokForAndroidTheme
+import io.tafdev.prdok.ui.theme.SystemBarsAppearance
 import io.tafdev.prdok.ui.today.TodayScreen
 import io.tafdev.prdok.ui.today.TodayViewModel
+import io.tafdev.prdok.ui.web.PortalBrowserScreen
 
 enum class MainTab(@StringRes val label: Int, val icon: ImageVector) {
     TODAY(R.string.tab_today, Icons.Default.Schedule),
@@ -42,78 +51,116 @@ enum class MainTab(@StringRes val label: Int, val icon: ImageVector) {
     LINKS(R.string.tab_links, Icons.Default.Link),
 }
 
+/** Keeps the open portal page across rotation: a data class can't go into a Bundle as it is. */
+private val PortalPageSaver = Saver<PortalPage?, List<Any>>(
+    save = { page -> page?.let { listOf(it.url, it.needsSession) } },
+    restore = { saved -> PortalPage(saved[0] as String, saved[1] as Boolean) },
+)
+
 /**
- * The paired part of the app: four tabs plus the full-screen Settings page reached
- * from Today. Still state-based switching rather than a navigation library — the
- * moment we need deep links or a back stack deeper than one level, that changes.
+ * The paired part of the app: four tabs, the full-screen Settings page reached from Today,
+ * and the in-app browser drawn over everything. Still state-based switching rather than a
+ * navigation library; the moment we need deep links or a deeper back stack, that changes.
  */
 @Composable
-fun MainScreen(container: AppContainer, modifier: Modifier = Modifier) {
+fun MainScreen(container: AppContainer, pairing: Pairing, modifier: Modifier = Modifier) {
     var selectedTab by rememberSaveable { mutableStateOf(MainTab.TODAY) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
+    var openPage by rememberSaveable(stateSaver = PortalPageSaver) { mutableStateOf<PortalPage?>(null) }
+    var ebonyVisited by rememberSaveable { mutableStateOf(false) }
+    val pages = container.portalPages
 
-    if (showSettings) {
-        BackHandler { showSettings = false }
-        val settingsViewModel: SettingsViewModel = viewModel { SettingsViewModel(container.pairingManager) }
-        SettingsScreen(settingsViewModel, onBack = { showSettings = false }, modifier = modifier)
-        return
-    }
+    // Held up here, above the tabs and above Settings, so the page survives switching away.
+    // Created on the first visit to the tab, so launching the app doesn't start loading Ebony.
+    val ebony = if (ebonyVisited) rememberEbonyPageState(pairing.provoz) else null
 
-    Scaffold(
-        modifier = modifier,
-        bottomBar = {
-            NavigationBar {
-                MainTab.entries.forEach { tab ->
-                    NavigationBarItem(
-                        selected = tab == selectedTab,
-                        onClick = { selectedTab = tab },
-                        icon = { Icon(tab.icon, contentDescription = null) },
-                        label = { Text(stringResource(tab.label)) },
-                    )
-                }
-            }
-        },
-    ) { innerPadding ->
-        val content = Modifier.padding(innerPadding)
-        when (selectedTab) {
-            MainTab.TODAY -> {
-                // Scoped to the Activity, so switching tabs and back keeps the loaded
-                // data; the ticker inside pauses while nothing collects it.
-                val todayViewModel: TodayViewModel = viewModel { TodayViewModel(container.shiftRepository) }
-                TodayScreen(
-                    viewModel = todayViewModel,
-                    onOpenProfile = { /* Profile screen: later phase */ },
-                    onOpenSettings = { showSettings = true },
-                    onWhoIsOnShift = { /* dnes.php web sheet: WebView phase */ },
-                    modifier = content,
-                )
-            }
-            MainTab.CALENDAR -> {
-                val calendarViewModel: CalendarViewModel = viewModel {
-                    CalendarViewModel(
-                        container.shiftRepository,
-                        container.openDaysRepository,
-                        container.freeShiftRepository,
-                    )
-                }
-                val exportViewModel: ExportViewModel = viewModel {
-                    ExportViewModel(container.shiftCalendarExporter)
-                }
-                CalendarScreen(
-                    viewModel = calendarViewModel,
-                    exportViewModel = exportViewModel,
-                    onWhoIsOnShift = { /* dnes.php web sheet: WebView phase */ },
-                    modifier = content,
-                )
-            }
-            else -> ComingSoon(selectedTab, content)
+    // Ebony's page is light-only, so the whole app, bars included, goes light while it shows.
+    val darkTheme = isSystemInDarkTheme() && selectedTab != MainTab.EBONY
+    PrdokForAndroidTheme(darkTheme = darkTheme) {
+        SystemBarsAppearance(darkTheme)
+
+        if (showSettings) {
+            BackHandler { showSettings = false }
+            val settingsViewModel: SettingsViewModel = viewModel { SettingsViewModel(container.pairingManager) }
+            SettingsScreen(settingsViewModel, onBack = { showSettings = false }, modifier = modifier)
+            return@PrdokForAndroidTheme
         }
-    }
-}
 
-@Composable
-private fun ComingSoon(tab: MainTab, modifier: Modifier = Modifier) {
-    Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(stringResource(R.string.coming_soon, stringResource(tab.label)))
+        // The browser is layered over the tabs rather than replacing them, so closing it
+        // returns to the tab exactly as it was: scroll position, open month and all.
+        Box(modifier) {
+            Scaffold(
+                bottomBar = {
+                    NavigationBar {
+                        MainTab.entries.forEach { tab ->
+                            NavigationBarItem(
+                                selected = tab == selectedTab,
+                                onClick = {
+                                    if (tab == MainTab.EBONY) ebonyVisited = true
+                                    selectedTab = tab
+                                },
+                                icon = { Icon(tab.icon, contentDescription = null) },
+                                label = { Text(stringResource(tab.label)) },
+                            )
+                        }
+                    }
+                },
+            ) { innerPadding ->
+                val content = Modifier.padding(innerPadding)
+                when (selectedTab) {
+                    MainTab.TODAY -> {
+                        // Scoped to the Activity, so switching tabs and back keeps the loaded
+                        // data; the ticker inside pauses while nothing collects it.
+                        val todayViewModel: TodayViewModel = viewModel { TodayViewModel(container.shiftRepository) }
+                        TodayScreen(
+                            viewModel = todayViewModel,
+                            onOpenProfile = { /* Profile screen: later phase */ },
+                            onOpenSettings = { showSettings = true },
+                            onWhoIsOnShift = { date -> openPage = pages.whoIsOnShift(date) },
+                            modifier = content,
+                        )
+                    }
+                    MainTab.CALENDAR -> {
+                        val calendarViewModel: CalendarViewModel = viewModel {
+                            CalendarViewModel(
+                                container.shiftRepository,
+                                container.openDaysRepository,
+                                container.freeShiftRepository,
+                            )
+                        }
+                        val exportViewModel: ExportViewModel = viewModel {
+                            ExportViewModel(container.shiftCalendarExporter)
+                        }
+                        CalendarScreen(
+                            viewModel = calendarViewModel,
+                            exportViewModel = exportViewModel,
+                            onWhoIsOnShift = { date -> openPage = pages.whoIsOnShift(date) },
+                            modifier = content,
+                        )
+                    }
+                    MainTab.EBONY -> if (ebony != null) {
+                        EbonyScreen(state = ebony, url = pages.ebony(pairing), contentPadding = innerPadding)
+                    }
+                    MainTab.LINKS -> LinksScreen(
+                        onOpen = { link ->
+                            openPage = when (link) {
+                                PortalLink.EMPLOYEE_WEB -> pages.employeeWeb(pairing)
+                                PortalLink.CONTACTS -> pages.contacts
+                                PortalLink.FORUM -> pages.forum
+                            }
+                        },
+                        modifier = content,
+                    )
+                }
+            }
+
+            openPage?.let { page ->
+                PortalBrowserScreen(
+                    page = page,
+                    authorize = container.portalSession::authorize,
+                    onClose = { openPage = null },
+                )
+            }
+        }
     }
 }
