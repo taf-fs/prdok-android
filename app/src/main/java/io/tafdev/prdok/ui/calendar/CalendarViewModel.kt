@@ -5,8 +5,10 @@ import androidx.lifecycle.viewModelScope
 import io.tafdev.prdok.data.api.OfferOutcome
 import io.tafdev.prdok.data.api.PrdokApiException
 import io.tafdev.prdok.data.api.RemoveOfferOutcome
+import io.tafdev.prdok.data.model.FreeShift
 import io.tafdev.prdok.data.model.PragueTime
 import io.tafdev.prdok.data.model.Shift
+import io.tafdev.prdok.data.shifts.FreeShiftRepository
 import io.tafdev.prdok.data.shifts.MonthStatistics
 import io.tafdev.prdok.data.shifts.OpenDaysRepository
 import io.tafdev.prdok.data.shifts.ShiftDays
@@ -26,6 +28,12 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/** The free-shifts list has its own little lifecycle, independent of the displayed month. */
+sealed class FreeShiftsLoad {
+    data object Loading : FreeShiftsLoad()
+    data class Loaded(val shifts: List<FreeShift>) : FreeShiftsLoad()
+    data object Failed : FreeShiftsLoad()
+}
 data class CalendarUiState(
     val today: LocalDate,
     val displayedMonth: YearMonth,
@@ -35,6 +43,7 @@ data class CalendarUiState(
     /** All shifts of [displayedMonth]; feeds the day sheet and the statistics. */
     val monthShifts: List<Shift> = emptyList(),
     val statistics: MonthStatistics? = null,
+    val freeShifts: FreeShiftsLoad = FreeShiftsLoad.Loading,
     val isMonthLoading: Boolean = false,
     /** The refresh button is running: grid and month buttons are disabled. */
     val isRefreshing: Boolean = false,
@@ -69,6 +78,7 @@ sealed class CalendarEvent {
 class CalendarViewModel(
     private val shifts: ShiftRepository,
     private val openDays: OpenDaysRepository,
+    private val freeShifts: FreeShiftRepository,
 ) : ViewModel() {
 
     private val today: LocalDate = LocalDate.now(PragueTime.ZONE)
@@ -89,6 +99,12 @@ class CalendarViewModel(
     /** The month whose load was last started, so paging back and forth doesn't reload. */
     private var requestedMonth: YearMonth? = null
     private var requestedYear: Int? = null
+
+    init {
+        // The month and year loads are driven by the grid (showMonth); the free-shifts
+        // list isn't tied to a month, so it loads once here and again on refresh.
+        viewModelScope.launch { loadFreeShiftsNow() }
+    }
 
     /** Called by the grid whenever the settled month changes (swipe, buttons, initial jump). */
     fun showMonth(month: YearMonth) {
@@ -128,6 +144,8 @@ class CalendarViewModel(
             } catch (e: PrdokApiException) {
                 e.message ?: "Unknown error"
             }
+            // Reported inline by the list itself, so it never turns the toast red.
+            loadFreeShiftsNow()
             minimumSpin.join()
             _uiState.update { it.copy(isRefreshing = false) }
             _events.send(if (failure == null) CalendarEvent.Refreshed else CalendarEvent.RefreshFailed(failure))
@@ -179,7 +197,14 @@ class CalendarViewModel(
                     _events.send(CalendarEvent.LoadFailed(e.message ?: "Unknown error"))
                 }
             }
+    private suspend fun loadFreeShiftsNow() {
+        _uiState.update { it.copy(freeShifts = FreeShiftsLoad.Loading) }
+        val load = try {
+            FreeShiftsLoad.Loaded(freeShifts.freeShifts())
+        } catch (e: PrdokApiException) {
+            FreeShiftsLoad.Failed
         }
+        _uiState.update { it.copy(freeShifts = load) }
     }
 
     /**

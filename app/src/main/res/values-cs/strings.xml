@@ -65,6 +65,12 @@
     <string name="calendar_refresh_failed">Obnovení selhalo: %1$s</string>
     <string name="error_request_failed">Požadavek selhal: %1$s</string>
     <string name="error_unexpected_response">Neočekávaná odpověď serveru: %1$s</string>
+    <!-- Free shifts -->
+    <string name="free_shifts_title">Volné směny</string>
+    <string name="free_shifts_empty">Žádné volné směny k převzetí.</string>
+    <string name="free_shifts_error">Volné směny se nepodařilo načíst.</string>
+    <string name="free_shift_role_manager">vedoucí</string>
+    <string name="free_shift_role_barista">barista</string>
 
     <!-- Day sheet -->
     <string name="day_offered">Nabídnutá možnost</string>

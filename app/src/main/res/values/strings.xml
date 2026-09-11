@@ -59,6 +59,12 @@
     <string name="calendar_refresh_failed">Refresh failed: %1$s</string>
     <string name="error_request_failed">Request failed: %1$s</string>
     <string name="error_unexpected_response">Unexpected server response: %1$s</string>
+    <!-- Free shifts -->
+    <string name="free_shifts_title">Free shifts to pick up</string>
+    <string name="free_shifts_empty">No free shifts to pick up.</string>
+    <string name="free_shifts_error">Couldn\'t load free shifts.</string>
+    <string name="free_shift_role_manager">manager</string>
+    <string name="free_shift_role_barista">barista</string>
 
     <!-- Day sheet -->
     <string name="day_offered">Offered shift</string>

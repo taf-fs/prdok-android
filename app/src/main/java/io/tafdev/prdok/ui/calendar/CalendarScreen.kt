@@ -225,6 +225,7 @@ fun CalendarContent(
                 },
             )
             StatisticsBlock(statistics = uiState.statistics, isLoading = uiState.isMonthLoading)
+            FreeShiftsSection(load = uiState.freeShifts, modifier = Modifier.padding(top = 8.dp))
         }
     }
 }
@@ -356,6 +357,7 @@ private val previewState = CalendarUiState(
         actual = setOf(LocalDate.of(2026, 9, 5)),
     ),
     statistics = MonthStatistics.compute(emptyList(), YearMonth.of(2026, 9), 26),
+    freeShifts = FreeShiftsLoad.Loaded(emptyList()),
 )
 
 @Preview(showBackground = true)

@@ -90,6 +90,7 @@ fun MainScreen(container: AppContainer, modifier: Modifier = Modifier) {
             MainTab.CALENDAR -> {
                 val calendarViewModel: CalendarViewModel = viewModel {
                     CalendarViewModel(container.shiftRepository, container.openDaysRepository)
+                        container.freeShiftRepository,
                 }
                 CalendarScreen(
                     viewModel = calendarViewModel,
