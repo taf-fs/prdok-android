@@ -347,22 +347,12 @@ private fun OfferForm(
     val isRangeValid = startHour < endHour
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            HourWheel(
-                label = stringResource(R.string.offer_from),
-                hours = START_HOURS,
-                selected = startHour,
-                onSettle = { startHour = it },
-                modifier = Modifier.weight(1f),
-            )
-            HourWheel(
-                label = stringResource(R.string.offer_to),
-                hours = END_HOURS,
-                selected = endHour,
-                onSettle = { endHour = it },
-                modifier = Modifier.weight(1f),
-            )
-        }
+        DualHourWheel(
+            startHour = startHour,
+            endHour = endHour,
+            onStartSettle = { startHour = it },
+            onEndSettle = { endHour = it },
+        )
         Button(
             onClick = { onSubmit(startHour, endHour) },
             enabled = !isSubmitting && isRangeValid,
@@ -379,6 +369,72 @@ private fun OfferForm(
     }
 }
 
+@Composable
+private fun DualHourWheel(
+    startHour: Int,
+    endHour: Int,
+    onStartSettle: (hour: Int) -> Unit,
+    onEndSettle: (hour: Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            WheelLabel(
+                text = stringResource(R.string.offer_from),
+                modifier = Modifier.weight(1f),
+            )
+            Spacer(Modifier.width(15.dp))
+            WheelLabel(
+                text = stringResource(R.string.offer_to),
+                modifier = Modifier.weight(1f),
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            HourWheel(
+                hours = START_HOURS,
+                selected = startHour,
+                onSettle = onStartSettle,
+                modifier = Modifier.weight(1f),
+            )
+            Box(
+                modifier = Modifier
+                    .width(15.dp)
+                    .height(2.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        shape = RoundedCornerShape(3.dp),
+                    ),
+            )
+            HourWheel(
+                hours = END_HOURS,
+                selected = endHour,
+                onSettle = onEndSettle,
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+}
+
+@Composable
+private fun WheelLabel(text: String, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(text = text, color = MaterialTheme.colorScheme.onSurfaceVariant, fontFamily = FontFamily.Serif)
+    }
+}
+
 /**
  * An iOS-style spinning wheel of whole hours; "24:00" and "25:00" mean past midnight.
  *
@@ -387,41 +443,33 @@ private fun OfferForm(
  */
 @Composable
 private fun HourWheel(
-    label: String,
     hours: List<Int>,
     selected: Int,
     onSettle: (hour: Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        Text(text = label, color = MaterialTheme.colorScheme.onSurfaceVariant, fontFamily = FontFamily.Serif)
-        // The wheel wants a concrete DpSize rather than a fill modifier, so the width
-        // this column was given has to be measured before it can be handed over.
-        BoxWithConstraints(Modifier.fillMaxWidth()) {
-            WheelTextPicker(
-                size = DpSize(maxWidth, WHEEL_ROW_HEIGHT * WHEEL_ROWS),
-                rowCount = WHEEL_ROWS,
-                texts = hours.map(::hourLabel),
-                startIndex = hours.indexOf(selected).coerceAtLeast(0),
-                style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace),
-                color = MaterialTheme.colorScheme.onSurface,
-                selectorProperties = WheelPickerDefaults.selectorProperties(
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f),
-                    border = null,
-                    shape = RoundedCornerShape(TRACK_CORNER),
-                ),
-                onScrollFinished = { index ->
-                    onSettle(hours[index])
-                    // null accepts the snap the wheel already made; an index would
-                    // scroll it somewhere else, which is exactly what we don't want.
-                    null
-                },
-            )
-        }
+    // The wheel wants a concrete DpSize rather than a fill modifier, so the width
+    // this component was given has to be measured before it can be handed over.
+    BoxWithConstraints(modifier) {
+        WheelTextPicker(
+            size = DpSize(maxWidth, WHEEL_ROW_HEIGHT * WHEEL_ROWS),
+            rowCount = WHEEL_ROWS,
+            texts = hours.map(::hourLabel),
+            startIndex = hours.indexOf(selected).coerceAtLeast(0),
+            style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace),
+            color = MaterialTheme.colorScheme.onSurface,
+            selectorProperties = WheelPickerDefaults.selectorProperties(
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f),
+                border = null,
+                shape = RoundedCornerShape(TRACK_CORNER),
+            ),
+            onScrollFinished = { index ->
+                onSettle(hours[index])
+                // null accepts the snap the wheel already made; an index would
+                // scroll it somewhere else, which is exactly what we don't want.
+                null
+            },
+        )
     }
 }
 
