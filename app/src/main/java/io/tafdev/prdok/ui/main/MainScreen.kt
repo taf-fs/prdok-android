@@ -4,6 +4,8 @@ import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
@@ -106,7 +108,10 @@ fun MainScreen(container: AppContainer, pairing: Pairing, modifier: Modifier = M
                     }
                 },
             ) { innerPadding ->
-                val content = Modifier.padding(innerPadding)
+                val bottomBar = PaddingValues(bottom = innerPadding.calculateBottomPadding())
+                val content = Modifier
+                    .padding(bottomBar)
+                    .consumeWindowInsets(bottomBar)
                 when (selectedTab) {
                     MainTab.TODAY -> {
                         // Scoped to the Activity, so switching tabs and back keeps the loaded

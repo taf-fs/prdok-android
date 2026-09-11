@@ -48,7 +48,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -67,6 +66,7 @@ import io.tafdev.prdok.data.export.ExportMode
 import io.tafdev.prdok.data.shifts.DayDot
 import io.tafdev.prdok.data.shifts.MonthStatistics
 import io.tafdev.prdok.data.shifts.ShiftDays
+import io.tafdev.prdok.ui.common.TabTitle
 import io.tafdev.prdok.ui.theme.PrdokForAndroidTheme
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -253,17 +253,12 @@ fun CalendarContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
+                .padding(innerPadding)
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                text = stringResource(R.string.calendar_title),
-                style = MaterialTheme.typography.headlineMedium,
-                fontFamily = FontFamily.Monospace,
-                fontWeight = FontWeight.SemiBold,
-            )
+            TabTitle(stringResource(R.string.calendar_title))
             MonthHeader(
                 calendarState = calendarState,
                 isRefreshing = uiState.isRefreshing,

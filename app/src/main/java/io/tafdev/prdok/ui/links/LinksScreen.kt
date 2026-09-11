@@ -7,9 +7,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,6 +24,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.tafdev.prdok.R
+import io.tafdev.prdok.ui.common.TabTitle
 import io.tafdev.prdok.ui.theme.PrdokForAndroidTheme
 
 /** What the Links tab offers. Which URL each one opens is MainScreen's business, not this screen's. */
@@ -38,16 +41,11 @@ fun LinksScreen(onOpen: (PortalLink) -> Unit, modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(24.dp),
+            .windowInsetsPadding(ScaffoldDefaults.contentWindowInsets)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(32.dp),
     ) {
-        Text(
-            text = stringResource(R.string.links_title),
-            style = MaterialTheme.typography.headlineLarge,
-            fontFamily = FontFamily.Monospace,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(bottom = 16.dp),
-        )
+        TabTitle(stringResource(R.string.links_title), modifier = Modifier.padding(bottom = 16.dp))
         PortalLink.entries.forEach { link ->
             Text(
                 text = stringResource(link.label),
