@@ -270,11 +270,11 @@ private fun MonthHeader(
 }
 
 /** "September 2026" / "Září 2026": `LLLL` is the stand-alone month name (nominative in Czech). */
-private fun monthLabel(month: YearMonth, locale: Locale): String =
+internal fun monthLabel(month: YearMonth, locale: Locale): String =
     month.format(DateTimeFormatter.ofPattern("LLLL y", locale)).replaceFirstChar { it.titlecase(locale) }
 
 @Composable
-private fun DaysOfWeekHeader(daysOfWeek: List<DayOfWeek>) {
+internal fun DaysOfWeekHeader(daysOfWeek: List<DayOfWeek>) {
     val locale = Locale.getDefault()
     Row(Modifier.fillMaxWidth()) {
         daysOfWeek.forEach { day ->
@@ -290,29 +290,31 @@ private fun DaysOfWeekHeader(daysOfWeek: List<DayOfWeek>) {
     }
 }
 
+/**
+ * One day of a month grid. Deliberately knows nothing about *why* it is highlighted:
+ * the month calendar passes 1.0 for today and 0.2 for the selected day, the multi-offer
+ * sheet passes 1.0 for every picked day. That is what lets both screens share it.
+ *
+ * @param highlight background opacity, 0..1; past 0.5 the number inverts to stay readable.
+ */
 @Composable
 private fun DayCell(
+internal fun DayCell(
     date: LocalDate,
-    isToday: Boolean,
-    isSelected: Boolean,
     dot: DayDot,
+    highlight: Float,
     enabled: Boolean,
     onClick: () -> Unit,
 ) {
-    val highlight = MaterialTheme.colorScheme.primary
-    val backgroundAlpha = when {
-        isToday -> 1f
-        isSelected -> 0.2f
-        else -> 0f
-    }
-    val contentColor = if (isToday) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+    val inverted = highlight >= 0.5f
+    val contentColor = if (inverted) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
 
     Box(
         modifier = Modifier
             .aspectRatio(1f)
             .padding(2.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(highlight.copy(alpha = backgroundAlpha))
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = highlight))
             .clickable(interactionSource = null, indication = null, enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
