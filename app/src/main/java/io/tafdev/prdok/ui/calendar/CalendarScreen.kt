@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -49,6 +50,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -61,6 +63,7 @@ import com.kizitonwose.calendar.core.OutDateStyle
 import com.kizitonwose.calendar.core.daysOfWeek
 import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import io.tafdev.prdok.R
+import io.tafdev.prdok.data.export.ExportMode
 import io.tafdev.prdok.data.shifts.DayDot
 import io.tafdev.prdok.data.shifts.MonthStatistics
 import io.tafdev.prdok.data.shifts.ShiftDays
@@ -71,6 +74,7 @@ import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
@@ -81,31 +85,51 @@ private const val RANGE_MONTHS = 12L
 private const val RANGE_MONTHS_BACK = 36L
 
 /**
- * Stateful entry point: owns the snackbar, the haptics and the day-sheet visibility,
- * and turns the ViewModel's one-shot events into those.
+ * Stateful entry point: owns the snackbar, the haptics and which sheet is open,
+ * and turns both ViewModels' one-shot events into those.
  */
 @Composable
 fun CalendarScreen(
     viewModel: CalendarViewModel,
+    exportViewModel: ExportViewModel,
     onWhoIsOnShift: (LocalDate) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val exportState by exportViewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
     val haptics = LocalHapticFeedback.current
     var showDaySheet by rememberSaveable { mutableStateOf(false) }
+    var showMultiOffer by rememberSaveable { mutableStateOf(false) }
+    var showExport by rememberSaveable { mutableStateOf(false) }
+
+    // Both event streams end the same way: a haptic and a snackbar. Only which sheet
+    // to close differs, so each collector decides that and hands the rest over.
+    // A local *extension* on CoroutineScope: called from inside a LaunchedEffect, it
+    // picks up that effect's scope as its receiver.
+    fun CoroutineScope.notify(isError: Boolean, message: String) {
+        haptics.performHapticFeedback(if (isError) HapticFeedbackType.Reject else HapticFeedbackType.Confirm)
+        // showSnackbar suspends until the snackbar is gone, so it runs in its own
+        // coroutine: a newer message replaces the old one instead of queueing behind it.
+        snackbarHostState.currentSnackbarData?.dismiss()
+        launch { snackbarHostState.showSnackbar(message, duration = SnackbarDuration.Short) }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
-            if (event is CalendarEvent.OfferSaved || event is CalendarEvent.OfferRemoved) showDaySheet = false
-            haptics.performHapticFeedback(
-                if (event.isError) HapticFeedbackType.Reject else HapticFeedbackType.Confirm
-            )
-            // showSnackbar suspends until the snackbar is gone, so it runs in its own
-            // coroutine: a newer message replaces the old one instead of queueing behind it.
-            snackbarHostState.currentSnackbarData?.dismiss()
-            launch { snackbarHostState.showSnackbar(event.message(context), duration = SnackbarDuration.Short) }
+            when (event) {
+                CalendarEvent.OfferSaved, CalendarEvent.OfferRemoved -> showDaySheet = false
+                is CalendarEvent.MultiOfferFinished -> showMultiOffer = false
+                else -> Unit
+            }
+            notify(event.isError, event.message(context))
+        }
+    }
+    LaunchedEffect(Unit) {
+        exportViewModel.events.collect { event ->
+            showExport = false
+            notify(event.isError, event.message(context))
         }
     }
 
@@ -118,6 +142,8 @@ fun CalendarScreen(
             showDaySheet = true
         },
         onRefresh = viewModel::refresh,
+        onOfferShifts = { showMultiOffer = true },
+        onExport = { showExport = true },
         modifier = modifier,
     )
 
@@ -135,6 +161,26 @@ fun CalendarScreen(
             },
         )
     }
+    if (showMultiOffer) {
+        MultiOfferSheet(
+            month = uiState.displayedMonth,
+            offeredDays = uiState.offeredDaysInMonth(),
+            progress = uiState.multiOffer,
+            onSubmit = viewModel::offerMany,
+            onDismiss = { showMultiOffer = false },
+        )
+    }
+    if (showExport) {
+        val month = uiState.displayedMonth
+        ExportSheet(
+            month = month,
+            state = exportState,
+            onPermissionResult = { granted -> exportViewModel.onPermissionResult(granted, month) },
+            onSelectCalendar = { id -> exportViewModel.selectCalendar(id, month) },
+            onExport = { title, alarm -> exportViewModel.export(month, title, alarm) },
+            onDismiss = { showExport = false },
+        )
+    }
 }
 
 private fun CalendarEvent.message(context: Context): String = when (this) {
@@ -147,6 +193,24 @@ private fun CalendarEvent.message(context: Context): String = when (this) {
     is CalendarEvent.RequestFailed -> context.getString(R.string.error_request_failed, detail)
     is CalendarEvent.OfferRejected -> context.getString(R.string.offer_rejected, serverMessage)
     is CalendarEvent.UnexpectedResponse -> context.getString(R.string.error_unexpected_response, serverMessage)
+    is CalendarEvent.MultiOfferFinished -> if (failed == 0) {
+        context.resources.getQuantityString(R.plurals.multi_offer_success, saved, saved)
+    } else {
+        // Two lines: the count, then the last server message, which is the most useful one.
+        listOfNotNull(
+            context.resources.getQuantityString(R.plurals.multi_offer_failure, failed, failed),
+            lastError,
+        ).joinToString("\n")
+    }
+}
+
+private fun ExportEvent.message(context: Context): String = when (this) {
+    is ExportEvent.Finished -> when (mode) {
+        ExportMode.ADD_ONLY -> context.resources.getQuantityString(R.plurals.export_added, summary.created, summary.created)
+        ExportMode.SYNC -> context.getString(R.string.export_synced, summary.created, summary.updated, summary.deleted)
+    }
+    ExportEvent.AccessDenied -> context.getString(R.string.export_permission_denied)
+    is ExportEvent.Failed -> context.getString(R.string.export_failed, detail)
 }
 
 /** Stateless apart from the grid's own scroll state; what previews render. */
@@ -157,6 +221,8 @@ fun CalendarContent(
     onMonthDisplayed: (YearMonth) -> Unit,
     onSelectDate: (LocalDate) -> Unit,
     onRefresh: () -> Unit,
+    onOfferShifts: () -> Unit,
+    onExport: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val todayMonth = YearMonth.from(uiState.today)
@@ -215,17 +281,34 @@ fun CalendarContent(
                     } else {
                         DayCell(
                             date = day.date,
-                            isToday = day.date == uiState.today,
-                            isSelected = day.date == uiState.selectedDate,
                             dot = uiState.shiftDays.dotFor(day.date),
+                            highlight = when (day.date) {
+                                uiState.today -> 1f
+                                uiState.selectedDate -> 0.2f
+                                else -> 0f
+                            },
                             enabled = !uiState.isRefreshing,
                             onClick = { onSelectDate(day.date) },
                         )
                     }
                 },
             )
+            ActionRow(enabled = !uiState.isRefreshing, onOfferShifts = onOfferShifts, onExport = onExport)
             StatisticsBlock(statistics = uiState.statistics, isLoading = uiState.isMonthLoading)
             FreeShiftsSection(load = uiState.freeShifts, modifier = Modifier.padding(top = 8.dp))
+        }
+    }
+}
+
+/** The two month-level actions between the grid and the statistics. */
+@Composable
+private fun ActionRow(enabled: Boolean, onOfferShifts: () -> Unit, onExport: () -> Unit) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Button(onClick = onOfferShifts, enabled = enabled, modifier = Modifier.weight(1f)) {
+            Text(stringResource(R.string.calendar_offer_shifts), maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+        Button(onClick = onExport, enabled = enabled, modifier = Modifier.weight(1f)) {
+            Text(stringResource(R.string.calendar_export), maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }
@@ -299,7 +382,6 @@ internal fun DaysOfWeekHeader(daysOfWeek: List<DayOfWeek>) {
  * @param highlight background opacity, 0..1; past 0.5 the number inverts to stay readable.
  */
 @Composable
-private fun DayCell(
 internal fun DayCell(
     date: LocalDate,
     dot: DayDot,
@@ -370,6 +452,8 @@ private fun CalendarContentPreview() {
             onMonthDisplayed = {},
             onSelectDate = {},
             onRefresh = {},
+            onOfferShifts = {},
+            onExport = {},
         )
     }
 }

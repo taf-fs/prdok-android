@@ -59,12 +59,63 @@
     <string name="calendar_refresh_failed">Refresh failed: %1$s</string>
     <string name="error_request_failed">Request failed: %1$s</string>
     <string name="error_unexpected_response">Unexpected server response: %1$s</string>
+    <string name="calendar_offer_shifts">Offer shifts</string>
+    <string name="calendar_export">Upload to calendar</string>
+
     <!-- Free shifts -->
     <string name="free_shifts_title">Free shifts to pick up</string>
     <string name="free_shifts_empty">No free shifts to pick up.</string>
     <string name="free_shifts_error">Couldn\'t load free shifts.</string>
     <string name="free_shift_role_manager">manager</string>
     <string name="free_shift_role_barista">barista</string>
+
+    <!-- Multi-offer sheet -->
+    <string name="multi_offer_title">Offer shifts</string>
+    <plurals name="multi_offer_submit">
+        <item quantity="one">Submit %d shift</item>
+        <item quantity="other">Submit %d shifts</item>
+    </plurals>
+    <string name="multi_offer_submit_none">Pick the days first</string>
+    <string name="multi_offer_progress">%1$d/%2$d</string>
+    <plurals name="multi_offer_success">
+        <item quantity="one">Successfully offered %d shift.</item>
+        <item quantity="other">Successfully offered %d shifts.</item>
+    </plurals>
+    <plurals name="multi_offer_failure">
+        <item quantity="one">Failed to offer %d shift.</item>
+        <item quantity="other">Failed to offer %d shifts.</item>
+    </plurals>
+
+    <!-- Calendar export -->
+    <string name="export_title">Upload shifts</string>
+    <string name="export_event_title">Event name</string>
+    <string name="export_default_event_title">cp_ shift</string>
+    <string name="export_calendar">Calendar</string>
+    <string name="export_loading_calendars">Loading calendars…</string>
+    <string name="export_no_calendars">No writable calendar found</string>
+    <string name="export_permission_needed">Prdok needs calendar access to save your shifts.</string>
+    <string name="export_permission_denied">Calendar access denied.</string>
+    <string name="export_alert">Alert</string>
+    <string name="export_alert_none">No notification</string>
+    <string name="export_alert_minutes">%1$d minutes before</string>
+    <plurals name="export_alert_hours">
+        <item quantity="one">%d hour before</item>
+        <item quantity="other">%d hours before</item>
+    </plurals>
+    <string name="export_checking">Checking…</string>
+    <plurals name="export_planned_count">
+        <item quantity="one">%d planned shift this month</item>
+        <item quantity="other">%d planned shifts this month</item>
+    </plurals>
+    <string name="export_sync_footer">There are already shifts saved in the calendar from this app. You can synchronize them.</string>
+    <string name="export_add">Add</string>
+    <string name="export_sync">Synchronize</string>
+    <plurals name="export_added">
+        <item quantity="one">Created %d event.</item>
+        <item quantity="other">Created %d events.</item>
+    </plurals>
+    <string name="export_synced">Created: %1$d, updated: %2$d, deleted: %3$d</string>
+    <string name="export_failed">Export failed: %1$s</string>
 
     <!-- Day sheet -->
     <string name="day_offered">Offered shift</string>

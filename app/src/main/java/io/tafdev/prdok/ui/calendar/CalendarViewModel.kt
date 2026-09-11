@@ -15,6 +15,8 @@ import io.tafdev.prdok.data.shifts.ShiftDays
 import io.tafdev.prdok.data.shifts.ShiftRepository
 import java.time.LocalDate
 import java.time.YearMonth
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.TimeSource
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
@@ -34,6 +36,10 @@ sealed class FreeShiftsLoad {
     data class Loaded(val shifts: List<FreeShift>) : FreeShiftsLoad()
     data object Failed : FreeShiftsLoad()
 }
+
+/** Progress of a multi-offer batch: `submitted` of `total` attempts have finished. */
+data class MultiOfferProgress(val submitted: Int, val total: Int)
+
 data class CalendarUiState(
     val today: LocalDate,
     val displayedMonth: YearMonth,
@@ -49,9 +55,15 @@ data class CalendarUiState(
     val isRefreshing: Boolean = false,
     /** An offer/removal request is in flight (day sheet). */
     val isSubmitting: Boolean = false,
+    /** Non-null while a multi-offer batch runs (multi-offer sheet). */
+    val multiOffer: MultiOfferProgress? = null,
 ) {
     fun shiftsOn(date: LocalDate): List<Shift> =
         monthShifts.filter { it.start.toLocalDate() == date }.sortedBy { it.start }
+
+    /** Days of [displayedMonth] that already carry an offer; the multi-offer grid pre-marks them. */
+    fun offeredDaysInMonth(): Set<LocalDate> =
+        shiftDays.offered.filterTo(mutableSetOf()) { YearMonth.from(it) == displayedMonth }
 }
 
 /**
@@ -72,7 +84,18 @@ sealed class CalendarEvent {
     data object OfferNotFound : CalendarEvent()
     data class UnexpectedResponse(val serverMessage: String) : CalendarEvent()
 
-    val isError: Boolean get() = this !is Refreshed && this !is OfferSaved && this !is OfferRemoved
+    /**
+     * A multi-offer batch finished. Individual failures don't abort the batch, so the
+     * result is a count plus the last error seen, which is all the toast can fit.
+     */
+    data class MultiOfferFinished(val saved: Int, val failed: Int, val lastError: String?) : CalendarEvent()
+
+    val isError: Boolean
+        get() = when (this) {
+            Refreshed, OfferSaved, OfferRemoved -> false
+            is MultiOfferFinished -> failed > 0
+            else -> true
+        }
 }
 
 class CalendarViewModel(
@@ -152,6 +175,43 @@ class CalendarViewModel(
         }
     }
 
+    /**
+     * Offers the same hours on every date in [dates], one request at a time in date
+     * order. A failed day doesn't stop the rest; the batch reports counts at the end.
+     */
+    fun offerMany(dates: Set<LocalDate>, startHour: Int, endHour: Int) {
+        if (_uiState.value.multiOffer != null || dates.isEmpty()) return
+        viewModelScope.launch {
+            val sorted = dates.sorted()
+            _uiState.update { it.copy(multiOffer = MultiOfferProgress(submitted = 0, total = sorted.size)) }
+            var saved = 0
+            var lastError: String? = null
+
+            for (date in sorted) {
+                // Each attempt is padded to a minimum length, so a fast server still
+                // shows the counter moving instead of jumping straight to the end.
+                val startedAt = TimeSource.Monotonic.markNow()
+                try {
+                    when (val outcome = shifts.offerShift(date, startHour, endHour)) {
+                        OfferOutcome.Saved -> saved++
+                        is OfferOutcome.Rejected -> lastError = outcome.serverMessage
+                        is OfferOutcome.Unexpected -> lastError = outcome.serverMessage
+                    }
+                } catch (e: PrdokApiException) {
+                    lastError = e.message ?: "Unknown error"
+                }
+                delay(MIN_OFFER_ATTEMPT - startedAt.elapsedNow())
+                _uiState.update { state ->
+                    state.copy(multiOffer = state.multiOffer?.let { it.copy(submitted = it.submitted + 1) })
+                }
+            }
+
+            _uiState.update { it.copy(multiOffer = null) }
+            _events.send(CalendarEvent.MultiOfferFinished(saved, failed = sorted.size - saved, lastError))
+            if (saved > 0) reloadAfterChange()
+        }
+    }
+
     fun offer(date: LocalDate, startHour: Int, endHour: Int) {
         submit {
             when (val outcome = shifts.offerShift(date, startHour, endHour)) {
@@ -187,16 +247,21 @@ class CalendarViewModel(
             }
             _uiState.update { it.copy(isSubmitting = false) }
             _events.send(event)
+            if (!event.isError) reloadAfterChange()
+        }
+    }
 
-            if (!event.isError) {
-                val month = _uiState.value.displayedMonth
-                try {
-                    loadMonthNow(month, force = true)
-                    loadYearNow(month.year)
-                } catch (e: PrdokApiException) {
-                    _events.send(CalendarEvent.LoadFailed(e.message ?: "Unknown error"))
-                }
-            }
+    /** After the server accepted a change: re-read the month and the year so dots and statistics catch up. */
+    private suspend fun reloadAfterChange() {
+        val month = _uiState.value.displayedMonth
+        try {
+            loadMonthNow(month, force = true)
+            loadYearNow(month.year)
+        } catch (e: PrdokApiException) {
+            _events.send(CalendarEvent.LoadFailed(e.message ?: "Unknown error"))
+        }
+    }
+
     private suspend fun loadFreeShiftsNow() {
         _uiState.update { it.copy(freeShifts = FreeShiftsLoad.Loading) }
         val load = try {
@@ -261,5 +326,6 @@ class CalendarViewModel(
 
     private companion object {
         const val MIN_REFRESH_MILLIS = 350L
+        val MIN_OFFER_ATTEMPT = 125.milliseconds
     }
 }

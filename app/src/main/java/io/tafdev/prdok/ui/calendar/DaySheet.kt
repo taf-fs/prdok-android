@@ -377,8 +377,9 @@ private fun OfferForm(
     }
 }
 
+/** Start/end hour wheels side by side; shared by the day sheet's offer form and the multi-offer sheet. */
 @Composable
-private fun DualHourWheel(
+internal fun DualHourWheel(
     startHour: Int,
     endHour: Int,
     onStartSettle: (hour: Int) -> Unit,

@@ -65,12 +65,75 @@
     <string name="calendar_refresh_failed">Obnovení selhalo: %1$s</string>
     <string name="error_request_failed">Požadavek selhal: %1$s</string>
     <string name="error_unexpected_response">Neočekávaná odpověď serveru: %1$s</string>
+    <string name="calendar_offer_shifts">Nabídnout možnosti</string>
+    <string name="calendar_export">Nahrát do kalendáře</string>
+
     <!-- Free shifts -->
     <string name="free_shifts_title">Volné směny</string>
     <string name="free_shifts_empty">Žádné volné směny k převzetí.</string>
     <string name="free_shifts_error">Volné směny se nepodařilo načíst.</string>
     <string name="free_shift_role_manager">vedoucí</string>
     <string name="free_shift_role_barista">barista</string>
+
+    <!-- Multi-offer sheet -->
+    <string name="multi_offer_title">Zápis možností</string>
+    <plurals name="multi_offer_submit">
+        <item quantity="one">Zapsat %d možnost</item>
+        <item quantity="few">Zapsat %d možnosti</item>
+        <item quantity="many">Zapsat %d možnosti</item>
+        <item quantity="other">Zapsat %d možností</item>
+    </plurals>
+    <string name="multi_offer_submit_none">Nejdřív vyber dny</string>
+    <string name="multi_offer_progress">%1$d/%2$d</string>
+    <plurals name="multi_offer_success">
+        <item quantity="one">Zapsána %d možnost.</item>
+        <item quantity="few">Zapsány %d možnosti.</item>
+        <item quantity="many">Zapsáno %d možnosti.</item>
+        <item quantity="other">Zapsáno %d možností.</item>
+    </plurals>
+    <plurals name="multi_offer_failure">
+        <item quantity="one">Nastala chyba při zápisu %d možnosti.</item>
+        <item quantity="few">Nastala chyba při zápisu %d možností.</item>
+        <item quantity="many">Nastala chyba při zápisu %d možnosti.</item>
+        <item quantity="other">Nastala chyba při zápisu %d možností.</item>
+    </plurals>
+
+    <!-- Calendar export -->
+    <string name="export_title">Nahrát do kalendáře</string>
+    <string name="export_event_title">Název události</string>
+    <string name="export_default_event_title">směna cp_</string>
+    <string name="export_calendar">Kalendář</string>
+    <string name="export_loading_calendars">Načítám kalendáře…</string>
+    <string name="export_no_calendars">Nebyl nalezen platný kalendář</string>
+    <string name="export_permission_needed">Prdok potřebuje přístup ke kalendáři, aby mohl směny uložit.</string>
+    <string name="export_permission_denied">Přístup ke kalendáři zamítnut.</string>
+    <string name="export_alert">Oznámení</string>
+    <string name="export_alert_none">Bez oznámení</string>
+    <string name="export_alert_minutes">%1$d minut předem</string>
+    <plurals name="export_alert_hours">
+        <item quantity="one">%d hodinu předem</item>
+        <item quantity="few">%d hodiny předem</item>
+        <item quantity="many">%d hodiny předem</item>
+        <item quantity="other">%d hodin předem</item>
+    </plurals>
+    <string name="export_checking">Kontroluji…</string>
+    <plurals name="export_planned_count">
+        <item quantity="one">%d naplánovaná směna tento měsíc</item>
+        <item quantity="few">%d naplánované směny tento měsíc</item>
+        <item quantity="many">%d naplánované směny tento měsíc</item>
+        <item quantity="other">%d naplánovaných směn tento měsíc</item>
+    </plurals>
+    <string name="export_sync_footer">V kalendáři už jsou uložené směny z této aplikace. Můžeš je synchronizovat.</string>
+    <string name="export_add">Přidat</string>
+    <string name="export_sync">Synchronizovat</string>
+    <plurals name="export_added">
+        <item quantity="one">Přidána %d směna.</item>
+        <item quantity="few">Přidány %d směny.</item>
+        <item quantity="many">Přidáno %d směny.</item>
+        <item quantity="other">Přidáno %d směn.</item>
+    </plurals>
+    <string name="export_synced">Přidáno: %1$d, změněno: %2$d, smazáno: %3$d</string>
+    <string name="export_failed">Export selhal: %1$s</string>
 
     <!-- Day sheet -->
     <string name="day_offered">Nabídnutá možnost</string>

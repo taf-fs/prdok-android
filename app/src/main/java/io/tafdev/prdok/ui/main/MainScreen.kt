@@ -29,6 +29,7 @@ import io.tafdev.prdok.AppContainer
 import io.tafdev.prdok.R
 import io.tafdev.prdok.ui.calendar.CalendarScreen
 import io.tafdev.prdok.ui.calendar.CalendarViewModel
+import io.tafdev.prdok.ui.calendar.ExportViewModel
 import io.tafdev.prdok.ui.settings.SettingsScreen
 import io.tafdev.prdok.ui.settings.SettingsViewModel
 import io.tafdev.prdok.ui.today.TodayScreen
@@ -89,11 +90,18 @@ fun MainScreen(container: AppContainer, modifier: Modifier = Modifier) {
             }
             MainTab.CALENDAR -> {
                 val calendarViewModel: CalendarViewModel = viewModel {
-                    CalendarViewModel(container.shiftRepository, container.openDaysRepository)
+                    CalendarViewModel(
+                        container.shiftRepository,
+                        container.openDaysRepository,
                         container.freeShiftRepository,
+                    )
+                }
+                val exportViewModel: ExportViewModel = viewModel {
+                    ExportViewModel(container.shiftCalendarExporter)
                 }
                 CalendarScreen(
                     viewModel = calendarViewModel,
+                    exportViewModel = exportViewModel,
                     onWhoIsOnShift = { /* dnes.php web sheet: WebView phase */ },
                     modifier = content,
                 )
