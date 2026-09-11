@@ -70,8 +70,8 @@
     <string name="calendar_refresh_failed">Refresh failed: %1$s</string>
     <string name="error_request_failed">Request failed: %1$s</string>
     <string name="error_unexpected_response">Unexpected server response: %1$s</string>
-    <string name="calendar_offer_shifts">Offer shifts</string>
-    <string name="calendar_export">Upload to calendar</string>
+    <string name="calendar_offer_shifts">offer shifts</string>
+    <string name="calendar_export">upload to calendar</string>
 
     <!-- Free shifts -->
     <string name="free_shifts_title">Free shifts to pick up</string>

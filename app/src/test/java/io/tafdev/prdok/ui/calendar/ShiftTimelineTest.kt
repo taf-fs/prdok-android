@@ -5,6 +5,7 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZonedDateTime
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ShiftTimelineTest {
@@ -59,5 +60,44 @@ class ShiftTimelineTest {
         val r = range("15:59", "22:39")
         assertEquals((8 + 59 / 60f) / 18f, r.start, 0.0001f)
         assertEquals((15 + 39 / 60f) / 18f, r.end, 0.0001f)
+    }
+
+    // --- Lanes -------------------------------------------------------------------
+
+    @Test
+    fun `no ranges need no lanes`() {
+        assertTrue(ShiftTimeline.lanes(emptyList()).isEmpty())
+    }
+
+    @Test
+    fun `touching shifts share a lane`() {
+        val lanes = ShiftTimeline.lanes(listOf(range("07:00", "11:00"), range("11:00", "15:00")))
+        assertEquals(1, lanes.size)
+    }
+
+    @Test
+    fun `two pairs overlapping fill two lanes in order of start, whatever the input order`() {
+        val early = range("07:00", "08:00")
+        val morning = range("07:00", "11:00")
+        val afternoon = range("16:00", "00:00")
+        val evening = range("17:00", "00:00")
+
+        val lanes = ShiftTimeline.lanes(listOf(evening, morning, afternoon, early))
+
+        assertEquals(listOf(listOf(early, afternoon), listOf(morning, evening)), lanes)
+    }
+
+    @Test
+    fun `three shifts running at once need a third lane`() {
+        val lanes = ShiftTimeline.lanes(
+            listOf(range("10:00", "17:00"), range("11:00", "14:00"), range("13:00", "14:00"))
+        )
+        assertEquals(3, lanes.size)
+    }
+
+    @Test
+    fun `identical shifts never hide behind each other`() {
+        val lanes = ShiftTimeline.lanes(listOf(range("10:00", "16:00"), range("10:00", "16:00")))
+        assertEquals(2, lanes.size)
     }
 }

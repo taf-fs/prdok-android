@@ -74,7 +74,7 @@ fun StatisticsBlock(statistics: MonthStatistics?, isLoading: Boolean, modifier: 
             spans = spans,
             values = buildAnnotatedString {
                 appendSide(statistics?.closingShifts?.actual, actualUnit, spans)
-                withStyle(spans.unit) { append(" $or ") }
+                withStyle(spans.conjunction) { append(" $or ") }
                 appendSide(statistics?.closingShifts?.offered, offeredUnit, spans)
             },
         )
@@ -84,7 +84,7 @@ fun StatisticsBlock(statistics: MonthStatistics?, isLoading: Boolean, modifier: 
             spans = spans,
             values = buildAnnotatedString {
                 appendSide(statistics?.totalHours?.actual, actualUnit, spans)
-                withStyle(spans.unit) { append(" $or ") }
+                withStyle(spans.conjunction) { append(" $or ") }
                 appendSide(statistics?.totalHours?.offered, offeredUnit, spans)
             },
         )
@@ -133,20 +133,25 @@ private fun AnnotatedString.Builder.appendSide(
     withStyle(spans.unit) { append(" $unit") }
 }
 
-/** The three span styles a value line mixes, resolved once per composition. */
-private data class ValueSpans(val met: SpanStyle, val plain: SpanStyle, val unit: SpanStyle)
+/** The span styles a value line mixes, resolved once per composition. */
+private data class ValueSpans(val met: SpanStyle, val plain: SpanStyle, val unit: SpanStyle, val conjunction: SpanStyle)
 
 @Composable
-private fun valueSpans(): ValueSpans = ValueSpans(
-    met = SpanStyle(color = metColor()),
-    plain = SpanStyle(color = MaterialTheme.colorScheme.onSurface),
-    unit = SpanStyle(
+private fun valueSpans(): ValueSpans {
+    val unit = SpanStyle(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         fontSize = UNIT_SIZE,
         fontWeight = FontWeight.Normal,
         fontFamily = FontFamily.Monospace, // planned-count note lives inside the label's AnnotatedString, so it would have inherited the serif automatically
-    ),
-)
+    )
+    return ValueSpans(
+        met = SpanStyle(color = metColor()),
+        plain = SpanStyle(color = MaterialTheme.colorScheme.onSurface),
+        unit = unit,
+        // copy() keeps everything but the one field named, so "or" stays sized and coloured like a unit.
+        conjunction = unit.copy(fontFamily = FontFamily.Serif),
+    )
+}
 
 @Composable
 private fun labelTextStyle(): TextStyle = MaterialTheme.typography.bodyMedium.copy(
@@ -157,7 +162,7 @@ private fun labelTextStyle(): TextStyle = MaterialTheme.typography.bodyMedium.co
 @Composable
 private fun valueTextStyle(): TextStyle = MaterialTheme.typography.bodyMedium.copy(
     fontFamily = FontFamily.Monospace,
-    fontWeight = FontWeight.SemiBold,
+    fontWeight = FontWeight.Normal,
 )
 
 @Composable

@@ -76,8 +76,8 @@
     <string name="calendar_refresh_failed">Obnovení selhalo: %1$s</string>
     <string name="error_request_failed">Požadavek selhal: %1$s</string>
     <string name="error_unexpected_response">Neočekávaná odpověď serveru: %1$s</string>
-    <string name="calendar_offer_shifts">Nabídnout možnosti</string>
-    <string name="calendar_export">Nahrát do kalendáře</string>
+    <string name="calendar_offer_shifts">nabídnout možnosti</string>
+    <string name="calendar_export">nahrát do kalendáře</string>
 
     <!-- Free shifts -->
     <string name="free_shifts_title">Volné směny</string>

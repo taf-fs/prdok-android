@@ -68,7 +68,7 @@ import java.time.format.FormatStyle
 import java.util.Locale
 
 internal val OfferedColor = Color(0xFF66FF33).copy(alpha = 0.5f)
-private val PlannedColor = Color(0xFF4CC417).copy(alpha = 0.5f)
+internal val PlannedColor = Color(0xFF4CC417).copy(alpha = 0.5f)
 private val ActualColor = Color(0xFFBDB76B).copy(alpha = 0.5f)
 
 private val TRACK_HEIGHT = 40.dp

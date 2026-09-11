@@ -15,10 +15,11 @@ fun Shift.span() = TimeSpan(start, end)
 fun FreeShift.span() = TimeSpan(start, end)
 
 /**
- * Places a shift on the day sheet's time track as two fractions of its width.
+ * Places shifts on a time track as fractions of its width, and spreads overlapping
+ * ones over lanes.
  *
  * Plain Kotlin with no Compose in sight, so the geometry can be unit-tested;
- * the composable only turns the fractions into dp.
+ * the composables only turn the fractions into dp.
  */
 object ShiftTimeline {
 
@@ -44,6 +45,23 @@ object ShiftTimeline {
             endHours += 24
         }
         return Range(normalized(startHours), normalized(endHours))
+    }
+
+    /**
+     * Spreads [ranges] over as few lanes as possible, with no two ranges in a lane overlapping.
+     *
+     * Taken in order of start, each range joins the first lane whose last range has already
+     * ended; only when every lane is still busy does a new one open. Because the earliest start
+     * always goes first, a new lane opens only when that many ranges really run at the same
+     * moment, so the lane count is the smallest possible. Ranges that merely touch share a lane.
+     */
+    fun lanes(ranges: List<Range>): List<List<Range>> {
+        val lanes = mutableListOf<MutableList<Range>>()
+        for (range in ranges.sortedWith(compareBy(Range::start, Range::end))) {
+            val free = lanes.firstOrNull { it.last().end <= range.start }
+            if (free != null) free += range else lanes += mutableListOf(range)
+        }
+        return lanes
     }
 
     private fun hoursSinceMidnightOf(time: ZonedDateTime, anchor: ZonedDateTime): Double {

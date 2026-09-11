@@ -6,15 +6,18 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
@@ -144,6 +147,7 @@ fun CalendarScreen(
         onRefresh = viewModel::refresh,
         onOfferShifts = { showMultiOffer = true },
         onExport = { showExport = true },
+        onWhoIsOnShift = onWhoIsOnShift,
         modifier = modifier,
     )
 
@@ -223,6 +227,7 @@ fun CalendarContent(
     onRefresh: () -> Unit,
     onOfferShifts: () -> Unit,
     onExport: () -> Unit,
+    onWhoIsOnShift: (LocalDate) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val todayMonth = YearMonth.from(uiState.today)
@@ -290,7 +295,11 @@ fun CalendarContent(
             )
             ActionRow(enabled = !uiState.isRefreshing, onOfferShifts = onOfferShifts, onExport = onExport)
             StatisticsBlock(statistics = uiState.statistics, isLoading = uiState.isMonthLoading)
-            FreeShiftsSection(load = uiState.freeShifts, modifier = Modifier.padding(top = 8.dp))
+            FreeShiftsSection(
+                load = uiState.freeShifts,
+                onOpenDay = onWhoIsOnShift,
+                modifier = Modifier.padding(top = 8.dp),
+            )
         }
     }
 }
@@ -299,12 +308,33 @@ fun CalendarContent(
 @Composable
 private fun ActionRow(enabled: Boolean, onOfferShifts: () -> Unit, onExport: () -> Unit) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        Button(onClick = onOfferShifts, enabled = enabled, modifier = Modifier.weight(1f)) {
-            Text(stringResource(R.string.calendar_offer_shifts), maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
-        Button(onClick = onExport, enabled = enabled, modifier = Modifier.weight(1f)) {
-            Text(stringResource(R.string.calendar_export), maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
+        ActionButton(stringResource(R.string.calendar_offer_shifts), enabled, onOfferShifts, Modifier.weight(1f))
+        ActionButton(stringResource(R.string.calendar_export), enabled, onExport, Modifier.weight(1f))
+    }
+}
+
+/**
+ * A slimmer Button than Material's default. `heightIn(min = ...)` rather than a fixed height:
+ * a minimum from outside switches off the Button's own 40 dp minimum, yet still lets the button
+ * grow when the user enlarges the system font.
+ */
+@Composable
+private fun ActionButton(text: String, enabled: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val style = MaterialTheme.typography.bodyLarge
+    Button(
+        onClick = onClick,
+        enabled = enabled,
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+        modifier = modifier.heightIn(min = 36.dp),
+    ) {
+        Text(
+            text = text,
+            style = style,
+            maxLines = 1,
+            // Shrinks the label step by step until it fits on one line, down to half its size.
+            autoSize = TextAutoSize.StepBased(minFontSize = style.fontSize / 2, maxFontSize = style.fontSize),
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
@@ -352,13 +382,17 @@ private fun MonthHeader(
 internal fun monthLabel(month: YearMonth, locale: Locale): String =
     month.format(DateTimeFormatter.ofPattern("LLLL y", locale)).replaceFirstChar { it.titlecase(locale) }
 
+/** "PO", "ÚT" / "MO", "TU": the first two letters of the short weekday name. */
+internal fun DayOfWeek.shortLabel(locale: Locale): String =
+    getDisplayName(TextStyle.SHORT, locale).take(2).uppercase(locale)
+
 @Composable
 internal fun DaysOfWeekHeader(daysOfWeek: List<DayOfWeek>) {
     val locale = Locale.getDefault()
     Row(Modifier.fillMaxWidth()) {
         daysOfWeek.forEach { day ->
             Text(
-                text = day.getDisplayName(TextStyle.SHORT, locale).take(2).uppercase(locale),
+                text = day.shortLabel(locale),
                 modifier = Modifier.weight(1f),
                 textAlign = TextAlign.Center,
                 fontFamily = FontFamily.Monospace,
@@ -449,6 +483,7 @@ private fun CalendarContentPreview() {
             onRefresh = {},
             onOfferShifts = {},
             onExport = {},
+            onWhoIsOnShift = {},
         )
     }
 }
