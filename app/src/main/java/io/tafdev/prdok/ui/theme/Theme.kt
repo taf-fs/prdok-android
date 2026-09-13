@@ -1,62 +1,103 @@
 package io.tafdev.prdok.ui.theme
 
 import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
-)
+/*
+ * There is no separate accent (yet): buttons, switches and checkmarks are drawn in the primary
+ * foreground, so they read as dark ink on a light theme and as light ink on a dark one.
+ */
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+    primary = CpForegroundPrimaryLight,
+    onPrimary = CpBackgroundSecondaryLight,
+    primaryContainer = CpBackgroundElevatedLight,
+    onPrimaryContainer = CpForegroundPrimaryLight,
+    secondary = CpForegroundSecondaryLight,
+    onSecondary = CpBackgroundSecondaryLight,
+    secondaryContainer = CpBackgroundElevatedLight,
+    onSecondaryContainer = CpForegroundPrimaryLight,
+    tertiary = CpForegroundMutedLight,
+    onTertiary = CpBackgroundSecondaryLight,
+    tertiaryContainer = CpBackgroundElevatedLight,
+    onTertiaryContainer = CpForegroundPrimaryLight,
+    background = CpBackgroundPrimaryLight,
+    onBackground = CpForegroundPrimaryLight,
+    surface = CpBackgroundPrimaryLight,
+    onSurface = CpForegroundPrimaryLight,
+    surfaceVariant = CpBackgroundElevatedLight,
+    onSurfaceVariant = CpForegroundSecondaryLight,
+    // Light mode counts down from the near-white Secondary to the tinted Elevated.
+    surfaceContainerLowest = CpBackgroundSecondaryLight,
+    surfaceContainerLow = CpSurfaceLowLight,
+    surfaceContainer = CpBackgroundPrimaryLight,
+    surfaceContainerHigh = CpBackgroundElevatedLight,
+    surfaceContainerHighest = CpSurfaceHighestLight,
+    surfaceTint = CpForegroundPrimaryLight,
+    outline = CpForegroundMutedLight,
+    outlineVariant = CpOutlineVariantLight,
+    inverseSurface = CpForegroundPrimaryLight,
+    inverseOnSurface = CpBackgroundSecondaryLight,
+    inversePrimary = CpForegroundPrimaryDark,
+    error = CpErrorLight,
+    onError = CpBackgroundSecondaryLight,
+    errorContainer = CpErrorContainerLight,
+    onErrorContainer = CpOnErrorContainerLight,
+)
 
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+private val DarkColorScheme = darkColorScheme(
+    primary = CpForegroundPrimaryDark,
+    onPrimary = CpBackgroundPrimaryDark,
+    primaryContainer = CpBackgroundElevatedDark,
+    onPrimaryContainer = CpForegroundPrimaryDark,
+    secondary = CpForegroundSecondaryDark,
+    onSecondary = CpBackgroundPrimaryDark,
+    secondaryContainer = CpBackgroundElevatedDark,
+    onSecondaryContainer = CpForegroundPrimaryDark,
+    tertiary = CpForegroundMutedDark,
+    onTertiary = CpBackgroundPrimaryDark,
+    tertiaryContainer = CpBackgroundElevatedDark,
+    onTertiaryContainer = CpForegroundPrimaryDark,
+    background = CpBackgroundPrimaryDark,
+    onBackground = CpForegroundPrimaryDark,
+    surface = CpBackgroundPrimaryDark,
+    onSurface = CpForegroundPrimaryDark,
+    surfaceVariant = CpBackgroundElevatedDark,
+    onSurfaceVariant = CpForegroundSecondaryDark,
+    // Dark mode counts up instead: the deeper the level, the lighter the surface.
+    surfaceContainerLowest = CpSurfaceLowestDark,
+    surfaceContainerLow = CpBackgroundPrimaryDark,
+    surfaceContainer = CpBackgroundSecondaryDark,
+    surfaceContainerHigh = CpBackgroundElevatedDark,
+    surfaceContainerHighest = CpSurfaceHighestDark,
+    surfaceTint = CpForegroundPrimaryDark,
+    outline = CpForegroundMutedDark,
+    outlineVariant = CpOutlineVariantDark,
+    inverseSurface = CpForegroundPrimaryDark,
+    inverseOnSurface = CpBackgroundPrimaryDark,
+    inversePrimary = CpForegroundPrimaryLight,
+    error = CpErrorDark,
+    onError = CpOnErrorDark,
+    errorContainer = CpErrorContainerDark,
+    onErrorContainer = CpErrorContainerLight,
 )
 
 @Composable
 fun PrdokForAndroidTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
         typography = Typography,
-        content = content
+        content = content,
     )
 }
 
