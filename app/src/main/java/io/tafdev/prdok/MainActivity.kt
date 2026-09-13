@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
@@ -14,9 +15,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.tafdev.prdok.data.pairing.Pairing
+import io.tafdev.prdok.data.settings.ThemePreference
 import io.tafdev.prdok.ui.main.MainScreen
 import io.tafdev.prdok.ui.setup.SetupFlow
 import io.tafdev.prdok.ui.theme.PrdokForAndroidTheme
+import io.tafdev.prdok.ui.theme.SystemBarsAppearance
 import kotlinx.coroutines.flow.map
 
 class MainActivity : ComponentActivity() {
@@ -24,11 +27,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val container = (application as PrdokApp).container
-        setContent {
-            PrdokForAndroidTheme {
-                PrdokRoot(container)
-            }
-        }
+        // No theme wrapper here: each branch below themes itself, because the main UI has to
+        // override the choice while the Ebony tab is open.
+        setContent { PrdokRoot(container) }
     }
 }
 
@@ -48,18 +49,32 @@ private fun PrdokRoot(container: AppContainer) {
         container.pairingStore.pairing.map<Pairing?, RootState> { RootState.Ready(it) }
     }
     val rootState by rootFlow.collectAsStateWithLifecycle(initialValue = RootState.Loading)
+    val themePreference by container.settingsStore.theme
+        .collectAsStateWithLifecycle(initialValue = ThemePreference.SYSTEM)
 
     // Each branch owns its own Scaffold (top/bottom bars differ), so no outer one here.
     when (val state = rootState) {
-        RootState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
+        RootState.Loading -> Themed(themePreference) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
         }
         is RootState.Ready -> {
             if (state.pairing == null) {
-                SetupFlow(container.pairingManager)
+                Themed(themePreference) { SetupFlow(container.pairingManager) }
             } else {
-                MainScreen(container, state.pairing)
+                MainScreen(container, state.pairing, themePreference)
             }
         }
+    }
+}
+
+/** Applies the preference and keeps the system bar icons legible against it. */
+@Composable
+private fun Themed(preference: ThemePreference, content: @Composable () -> Unit) {
+    val darkTheme = preference.isDark(isSystemInDarkTheme())
+    PrdokForAndroidTheme(darkTheme = darkTheme) {
+        SystemBarsAppearance(darkTheme)
+        content()
     }
 }

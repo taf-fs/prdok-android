@@ -31,6 +31,7 @@ import io.tafdev.prdok.AppContainer
 import io.tafdev.prdok.R
 import io.tafdev.prdok.data.pairing.Pairing
 import io.tafdev.prdok.data.portal.PortalPage
+import io.tafdev.prdok.data.settings.ThemePreference
 import io.tafdev.prdok.ui.calendar.CalendarScreen
 import io.tafdev.prdok.ui.calendar.CalendarViewModel
 import io.tafdev.prdok.ui.calendar.ExportViewModel
@@ -65,7 +66,12 @@ private val PortalPageSaver = Saver<PortalPage?, List<Any>>(
  * navigation library; the moment we need deep links or a deeper back stack, that changes.
  */
 @Composable
-fun MainScreen(container: AppContainer, pairing: Pairing, modifier: Modifier = Modifier) {
+fun MainScreen(
+    container: AppContainer,
+    pairing: Pairing,
+    themePreference: ThemePreference,
+    modifier: Modifier = Modifier,
+) {
     var selectedTab by rememberSaveable { mutableStateOf(MainTab.TODAY) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
     var openPage by rememberSaveable(stateSaver = PortalPageSaver) { mutableStateOf<PortalPage?>(null) }
@@ -76,14 +82,18 @@ fun MainScreen(container: AppContainer, pairing: Pairing, modifier: Modifier = M
     // Created on the first visit to the tab, so launching the app doesn't start loading Ebony.
     val ebony = if (ebonyVisited) rememberEbonyPageState(pairing.provoz) else null
 
-    // Ebony's page is light-only, so the whole app, bars included, goes light while it shows.
-    val darkTheme = isSystemInDarkTheme() && selectedTab != MainTab.EBONY
+    // Ebony's page is light-only, so the whole app, bars included, goes light while it shows —
+    // that override beats the user's preference, which is why the theme is applied here and
+    // not once at the root.
+    val darkTheme = themePreference.isDark(isSystemInDarkTheme()) && selectedTab != MainTab.EBONY
     PrdokForAndroidTheme(darkTheme = darkTheme) {
         SystemBarsAppearance(darkTheme)
 
         if (showSettings) {
             BackHandler { showSettings = false }
-            val settingsViewModel: SettingsViewModel = viewModel { SettingsViewModel(container.pairingManager) }
+            val settingsViewModel: SettingsViewModel = viewModel {
+                SettingsViewModel(container.pairingManager, container.settingsStore)
+            }
             SettingsScreen(settingsViewModel, onBack = { showSettings = false }, modifier = modifier)
             return@PrdokForAndroidTheme
         }

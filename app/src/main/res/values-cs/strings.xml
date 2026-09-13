@@ -173,6 +173,11 @@
 
     <!-- Settings -->
     <string name="settings_title">Nastavení</string>
+    <string name="settings_language">Jazyk aplikace</string>
+    <string name="settings_theme">Vzhled aplikace</string>
+    <string name="settings_theme_system">Výchozí</string>
+    <string name="settings_theme_light">Světlý</string>
+    <string name="settings_theme_dark">Tmavý</string>
     <string name="settings_unpair">Odpárovat zařízení</string>
     <string name="settings_unpair_confirm_title">Odpárovat toto zařízení?</string>
     <string name="settings_unpair_confirm_text">Pro zobrazení směn bude potřeba znovu spárovat.</string>
