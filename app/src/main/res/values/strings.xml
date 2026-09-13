@@ -145,11 +145,11 @@
 
     <!-- Statistics -->
     <string name="stats_weekend_hours">Weekend hours</string>
-    <string name="stats_closing_shifts">Closings</string>
+    <string name="stats_closing_shifts">Closing shifts</string>
     <string name="stats_total_hours">Total</string>
     <!-- Unit words after a "value/required" pair; kept short so the whole row fits one line. -->
-    <string name="stats_suffix_offered">offr.</string>
-    <string name="stats_suffix_actual">wrk.</string>
+    <string name="stats_suffix_offered">off.</string>
+    <string name="stats_suffix_actual">done</string>
     <string name="stats_or">or</string>
     <string name="stats_planned_inline">(%1$d pln.)</string>
 
