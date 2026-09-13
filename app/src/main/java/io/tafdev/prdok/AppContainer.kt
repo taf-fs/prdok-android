@@ -11,6 +11,8 @@ import io.tafdev.prdok.data.pairing.PairingStore
 import io.tafdev.prdok.data.portal.PortalPages
 import io.tafdev.prdok.data.portal.PortalSession
 import io.tafdev.prdok.data.portal.WebViewSessionCookieJar
+import io.tafdev.prdok.data.settings.DataStoreSettingsStore
+import io.tafdev.prdok.data.settings.SettingsStore
 import io.tafdev.prdok.data.shifts.FreeShiftRepository
 import io.tafdev.prdok.data.shifts.OpenDaysRepository
 import io.tafdev.prdok.data.shifts.ShiftRepository
@@ -27,6 +29,8 @@ class AppContainer(context: Context) {
     private val httpClient = OkHttpClient()
     val api = PrdokApi(BuildConfig.API_BASE_URL, httpClient)
     val pairingStore: PairingStore = DataStorePairingStore(context)
+    // Kept apart from the pairing: unpairing wipes credentials, but the set theme should stay
+    val settingsStore: SettingsStore = DataStoreSettingsStore(context)
     // context.cacheDir is the OS-managed cache location: it survives restarts but the
     // system may wipe it under storage pressure, which is exactly right for a refetchable cache.
     private val cacheDir = File(context.cacheDir, "prdok")
