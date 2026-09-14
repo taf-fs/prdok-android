@@ -22,6 +22,7 @@ import io.tafdev.prdok.data.model.FreeShift
 import io.tafdev.prdok.data.model.FreeShiftRole
 import io.tafdev.prdok.data.model.PragueTime
 import io.tafdev.prdok.ui.theme.PrdokForAndroidTheme
+import io.tafdev.prdok.ui.theme.backgroundSecondary
 import java.time.LocalDate
 import java.time.ZonedDateTime
 
@@ -47,7 +48,11 @@ fun FreeShiftsSection(load: FreeShiftsLoad, onOpenDay: (LocalDate) -> Unit, modi
                 Centered { Note(stringResource(R.string.free_shifts_empty)) }
             } else {
                 // map is an inline function, so its lambda may call the composable timelineEntry().
-                ShiftDayTimeline(entries = load.shifts.map { it.timelineEntry() }, onOpenDay = onOpenDay)
+                ShiftDayTimeline(
+                    entries = load.shifts.map { it.timelineEntry() },
+                    onOpenDay = onOpenDay,
+                    background = MaterialTheme.backgroundSecondary,
+                )
             }
         }
     }
@@ -104,7 +109,7 @@ private fun previewShift(id: Int, day: Int, from: Int, to: Int, role: FreeShiftR
 @Composable
 private fun FreeShiftsSectionPreview() {
     PrdokForAndroidTheme {
-        Surface {
+        Surface(color = MaterialTheme.backgroundSecondary) {
             FreeShiftsSection(
                 load = FreeShiftsLoad.Loaded(
                     listOf(
@@ -136,7 +141,7 @@ private fun FreeShiftsSectionPreview() {
 @Composable
 private fun FreeShiftsSectionEmptyPreview() {
     PrdokForAndroidTheme {
-        Surface {
+        Surface(color = MaterialTheme.backgroundSecondary) {
             FreeShiftsSection(load = FreeShiftsLoad.Loaded(emptyList()), onOpenDay = {}, modifier = Modifier.padding(16.dp))
         }
     }

@@ -31,6 +31,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -400,13 +401,15 @@ private object TodayPreviewData {
 @Composable
 private fun PreviewTodayContent(uiState: TodayUiState) {
     PrdokForAndroidTheme {
-        TodayContent(
-            uiState = uiState,
-            onOpenProfile = {},
-            onOpenSettings = {},
-            onWhoIsOnShift = {},
-            onRetry = {},
-        )
+        Surface {
+            TodayContent(
+                uiState = uiState,
+                onOpenProfile = {},
+                onOpenSettings = {},
+                onWhoIsOnShift = {},
+                onRetry = {},
+            )
+        }
     }
 }
 

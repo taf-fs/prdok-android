@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -49,6 +51,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -72,6 +75,7 @@ import io.tafdev.prdok.data.shifts.MonthStatistics
 import io.tafdev.prdok.data.shifts.ShiftDays
 import io.tafdev.prdok.ui.common.TabTitle
 import io.tafdev.prdok.ui.theme.PrdokForAndroidTheme
+import io.tafdev.prdok.ui.theme.backgroundSecondary
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
@@ -255,51 +259,67 @@ fun CalendarContent(
     Scaffold(
         modifier = modifier,
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        // Shows past the end of short content, so the free shifts' background runs down to the bottom edge.
+        containerColor = MaterialTheme.backgroundSecondary,
     ) { innerPadding ->
+        val layoutDirection = LocalLayoutDirection.current
+        val horizontalPadding = Modifier.padding(
+            start = innerPadding.calculateStartPadding(layoutDirection) + 16.dp,
+            end = innerPadding.calculateEndPadding(layoutDirection) + 16.dp,
+        )
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(innerPadding)
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+                .verticalScroll(rememberScrollState()),
         ) {
-            TabTitle(stringResource(R.string.calendar_title))
-            MonthHeader(
-                calendarState = calendarState,
-                isRefreshing = uiState.isRefreshing,
-                onScrollToMonth = { month -> scope.launch { calendarState.animateScrollToMonth(month) } },
-                onRefresh = onRefresh,
-            )
-            DaysOfWeekHeader(daysOfWeek(calendarState.firstDayOfWeek))
-            HorizontalCalendar(
-                state = calendarState,
-                calendarScrollPaged = true,
-                userScrollEnabled = !uiState.isRefreshing,
-                dayContent = { day ->
-                    if (day.position != DayPosition.MonthDate) {
-                        Box(Modifier.aspectRatio(1f)) // out-of-month: blank and not tappable
-                    } else {
-                        DayCell(
-                            date = day.date,
-                            dot = uiState.shiftDays.dotFor(day.date),
-                            highlight = when (day.date) {
-                                uiState.today -> 1f
-                                uiState.selectedDate -> 0.2f
-                                else -> 0f
-                            },
-                            enabled = !uiState.isRefreshing,
-                            onClick = { onSelectDate(day.date) },
-                        )
-                    }
-                },
-            )
-            ActionRow(enabled = !uiState.isRefreshing, onOfferShifts = onOfferShifts, onExport = onExport)
-            StatisticsBlock(statistics = uiState.statistics, isLoading = uiState.isMonthLoading)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(top = innerPadding.calculateTopPadding())
+                    .then(horizontalPadding)
+                    .padding(top = 8.dp, bottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                TabTitle(stringResource(R.string.calendar_title))
+                MonthHeader(
+                    calendarState = calendarState,
+                    isRefreshing = uiState.isRefreshing,
+                    onScrollToMonth = { month -> scope.launch { calendarState.animateScrollToMonth(month) } },
+                    onRefresh = onRefresh,
+                )
+                DaysOfWeekHeader(daysOfWeek(calendarState.firstDayOfWeek))
+                HorizontalCalendar(
+                    state = calendarState,
+                    calendarScrollPaged = true,
+                    userScrollEnabled = !uiState.isRefreshing,
+                    dayContent = { day ->
+                        if (day.position != DayPosition.MonthDate) {
+                            Box(Modifier.aspectRatio(1f)) // out-of-month: blank and not tappable
+                        } else {
+                            DayCell(
+                                date = day.date,
+                                dot = uiState.shiftDays.dotFor(day.date),
+                                highlight = when (day.date) {
+                                    uiState.today -> 1f
+                                    uiState.selectedDate -> 0.2f
+                                    else -> 0f
+                                },
+                                enabled = !uiState.isRefreshing,
+                                onClick = { onSelectDate(day.date) },
+                            )
+                        }
+                    },
+                )
+                ActionRow(enabled = !uiState.isRefreshing, onOfferShifts = onOfferShifts, onExport = onExport)
+                StatisticsBlock(statistics = uiState.statistics, isLoading = uiState.isMonthLoading)
+            }
+            // Free shifts sit on the secondary background, like the upcoming shifts on Today.
             FreeShiftsSection(
                 load = uiState.freeShifts,
                 onOpenDay = onWhoIsOnShift,
-                modifier = Modifier.padding(top = 8.dp),
+                modifier = horizontalPadding
+                    .padding(top = 16.dp, bottom = innerPadding.calculateBottomPadding() + 16.dp),
             )
         }
     }
