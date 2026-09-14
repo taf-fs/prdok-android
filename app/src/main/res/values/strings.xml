@@ -39,11 +39,11 @@
     <!-- Today -->
     <string name="today_profile">Profile</string>
     <string name="today_settings">Settings</string>
-    <string name="countdown_current_ends">Current shift ends in</string>
-    <string name="countdown_next_starts">Next shift starts</string>
+    <string name="countdown_current_ends">Shift ends in</string>
+    <string name="countdown_next_in">Next shift is in</string>
+    <string name="countdown_next_soon">Next shift is</string>
     <string name="countdown_today">today</string>
     <string name="countdown_tomorrow">tomorrow</string>
-    <string name="countdown_in">in %1$s</string>
     <plurals name="countdown_days">
         <item quantity="one">%d day</item>
         <item quantity="other">%d days</item>
@@ -56,8 +56,9 @@
         <item quantity="one">%d minute</item>
         <item quantity="other">%d minutes</item>
     </plurals>
-    <string name="today_no_shifts">No upcoming shifts</string>
-    <string name="today_who_is_on_shift">Who is on shift</string>
+    <string name="today_no_shifts">No upcoming planned shifts</string>
+    <string name="today_loading">Loading shifts…</string>
+    <string name="today_who_is_on_shift">Who’s on the shift</string>
     <string name="today_upcoming">Upcoming shifts</string>
     <string name="error_load_failed">Couldn\'t load shifts: %1$s</string>
 

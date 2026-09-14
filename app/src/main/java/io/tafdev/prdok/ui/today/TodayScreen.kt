@@ -1,32 +1,36 @@
 package io.tafdev.prdok.ui.today
 
 import android.content.res.Configuration
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,6 +40,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -48,15 +53,25 @@ import io.tafdev.prdok.data.shifts.CountdownUnit
 import io.tafdev.prdok.data.shifts.RemainingTime
 import io.tafdev.prdok.data.shifts.StartsIn
 import io.tafdev.prdok.data.shifts.TodayOverview
+import io.tafdev.prdok.ui.calendar.ShiftDayTimelineRows
+import io.tafdev.prdok.ui.calendar.ShiftTimelineAxis
+import io.tafdev.prdok.ui.calendar.ShiftTimelineEntry
+import io.tafdev.prdok.ui.calendar.span
+import io.tafdev.prdok.ui.calendar.timeRange
 import io.tafdev.prdok.ui.theme.PrdokForAndroidTheme
+import io.tafdev.prdok.ui.theme.backgroundSecondary
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-private val TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm")
 private val SHORT_DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.")
+
+/** How much of the height below the status bar the header takes, as on iOS. */
+private const val HEADER_SHARE = 0.55f
+private val SECTION_GAP = 20.dp
+private val TOP_BAR_ICON_SIZE = 28.dp
 
 /**
  * Stateful entry point: the only part that knows a ViewModel exists. It collects the
@@ -81,8 +96,12 @@ fun TodayScreen(
     )
 }
 
-/** Stateless rendering of [TodayUiState]: no ViewModel, no clock, no network. */
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Stateless rendering of [TodayUiState]: no ViewModel, no clock, no network.
+ *
+ * Laid out like iOS: a header on the primary background taking the upper part of the screen
+ * (date bar, countdown, who is on shift), then the upcoming shifts filling what is left.
+ */
 @Composable
 fun TodayContent(
     uiState: TodayUiState,
@@ -92,144 +111,245 @@ fun TodayContent(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val headerDate = uiState.now.format(DateTimeFormatter.ofPattern("d. MMMM", Locale.getDefault()))
+    val overview = uiState.overview
+    // The header's background runs up behind the status bar, but its share is taken of the height below it.
+    val topInset = WindowInsets.safeDrawing.only(WindowInsetsSides.Top).asPaddingValues().calculateTopPadding()
 
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = headerDate,
-                        style = MaterialTheme.typography.labelLarge,
-                        fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onOpenProfile) {
-                        Icon(Icons.Default.Person, contentDescription = stringResource(R.string.today_profile))
-                    }
-                },
-                actions = {
-                    IconButton(onClick = onOpenSettings) {
-                        Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.today_settings))
-                    }
-                },
+    BoxWithConstraints(
+        modifier
+            .fillMaxSize()
+            .background(MaterialTheme.backgroundSecondary),
+    ) {
+        val headerHeight = topInset + (maxHeight - topInset) * HEADER_SHARE
+        Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(SECTION_GAP)) {
+            Header(
+                uiState = uiState,
+                onOpenProfile = onOpenProfile,
+                onOpenSettings = onOpenSettings,
+                // With nothing loaded there is no shift to pick a day from, so it opens today.
+                onWhoIsOnShift = { onWhoIsOnShift(overview?.whoIsOnShiftDate ?: uiState.now.toLocalDate()) },
+                onRetry = onRetry,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(headerHeight),
             )
-        },
-    ) { innerPadding ->
-        val overview = uiState.overview
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            item {
-                CountdownCard(
-                    isLoading = uiState.isLoading,
-                    errorMessage = uiState.errorMessage,
-                    countdown = overview?.countdown,
-                    onRetry = onRetry,
-                )
-            }
-            if (overview != null) {
-                item {
-                    OutlinedButton(
-                        onClick = { onWhoIsOnShift(overview.whoIsOnShiftDate) },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(stringResource(R.string.today_who_is_on_shift))
-                    }
-                }
-                if (overview.upcoming.isNotEmpty()) {
-                    item {
-                        Text(
-                            text = stringResource(R.string.today_upcoming),
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(top = 8.dp),
-                        )
-                    }
-                    items(overview.upcoming, key = { it.id }) { shift ->
-                        ListItem(
-                            headlineContent = { Text(shift.timeRange()) },
-                            supportingContent = { Text(shift.start.format(SHORT_DATE_FORMAT)) },
-                        )
-                    }
-                }
-            }
+
+            // The pause timer goes here, between the header and the shifts (SimplePauseTimerView on iOS),
+            // with the same 16 dp side padding as the shifts below.
+
+            UpcomingShifts(
+                upcoming = overview?.upcoming,
+                onOpenDay = onWhoIsOnShift,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 16.dp),
+            )
         }
     }
 }
 
 @Composable
-private fun CountdownCard(
-    isLoading: Boolean,
-    errorMessage: String?,
-    countdown: Countdown?,
+private fun Header(
+    uiState: TodayUiState,
+    onOpenProfile: () -> Unit,
+    onOpenSettings: () -> Unit,
+    onWhoIsOnShift: () -> Unit,
     onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Box(
+    Column(
+        modifier
+            .background(MaterialTheme.colorScheme.background)
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top))
+            .padding(top = 8.dp),
+    ) {
+        // Less side padding than the rest: the icon buttons' own touch padding makes up the difference.
+        TopDateBar(uiState.now, onOpenProfile, onOpenSettings, Modifier.padding(horizontal = 4.dp))
+        Column(
             modifier = Modifier
+                .weight(1f)
                 .fillMaxWidth()
-                .padding(20.dp),
-            contentAlignment = Alignment.Center,
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             when {
-                isLoading -> CircularProgressIndicator()
-                errorMessage != null -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = stringResource(R.string.error_load_failed, errorMessage),
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Button(onClick = onRetry) { Text(stringResource(R.string.retry)) }
-                }
-                countdown != null -> CountdownContent(countdown)
+                uiState.isLoading -> Loading()
+                uiState.errorMessage != null -> LoadError(uiState.errorMessage, onRetry)
+                uiState.overview != null -> CountdownBlock(uiState.overview.countdown)
             }
+            WhoIsOnShiftButton(onClick = onWhoIsOnShift)
         }
     }
 }
 
 @Composable
-private fun CountdownContent(countdown: Countdown) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+private fun TopDateBar(now: ZonedDateTime, onOpenProfile: () -> Unit, onOpenSettings: () -> Unit, modifier: Modifier = Modifier) {
+    Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        IconButton(onClick = onOpenProfile) {
+            Icon(
+                Icons.Default.AccountCircle,
+                contentDescription = stringResource(R.string.today_profile),
+                modifier = Modifier.size(TOP_BAR_ICON_SIZE),
+            )
+        }
+        Text(
+            text = now.format(DateTimeFormatter.ofPattern("d. MMMM", Locale.getDefault())),
+            style = MaterialTheme.typography.labelMedium,
+            fontFamily = FontFamily.Monospace,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.weight(1f),
+        )
+        IconButton(onClick = onOpenSettings) {
+            Icon(
+                Icons.Default.Settings,
+                contentDescription = stringResource(R.string.today_settings),
+                modifier = Modifier.size(TOP_BAR_ICON_SIZE),
+            )
+        }
+    }
+}
+
+@Composable
+private fun Loading() {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        CircularProgressIndicator()
+        Text(stringResource(R.string.today_loading), color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun LoadError(message: String, onRetry: () -> Unit) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = stringResource(R.string.error_load_failed, message),
+            color = MaterialTheme.colorScheme.error,
+            textAlign = TextAlign.Center,
+        )
+        Button(onClick = onRetry) { Text(stringResource(R.string.retry)) }
+    }
+}
+
+@Composable
+private fun CountdownBlock(countdown: Countdown) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
         when (countdown) {
             is Countdown.Ongoing -> {
-                Text(stringResource(R.string.countdown_current_ends), style = MaterialTheme.typography.labelLarge)
-                Text(remainingText(countdown.remaining), style = MaterialTheme.typography.displaySmall)
+                CountdownTitle(stringResource(R.string.countdown_current_ends))
+                CountdownValue(remainingText(countdown.remaining))
                 ShiftDetails(countdown.shift)
             }
             is Countdown.Upcoming -> {
-                Text(stringResource(R.string.countdown_next_starts), style = MaterialTheme.typography.labelLarge)
-                Text(
-                    text = when (val s = countdown.startsIn) {
-                        StartsIn.Today -> stringResource(R.string.countdown_today)
-                        StartsIn.Tomorrow -> stringResource(R.string.countdown_tomorrow)
-                        is StartsIn.Later -> stringResource(R.string.countdown_in, remainingText(s.remaining))
-                    },
-                    style = MaterialTheme.typography.displaySmall,
-                )
+                // "Next shift is / today", but "Next shift is in / 3 days": the title carries the "in".
+                when (val s = countdown.startsIn) {
+                    StartsIn.Today, StartsIn.Tomorrow -> {
+                        CountdownTitle(stringResource(R.string.countdown_next_soon))
+                        CountdownValue(
+                            stringResource(if (s == StartsIn.Today) R.string.countdown_today else R.string.countdown_tomorrow)
+                        )
+                    }
+                    is StartsIn.Later -> {
+                        CountdownTitle(stringResource(R.string.countdown_next_in))
+                        CountdownValue(remainingText(s.remaining))
+                    }
+                }
                 ShiftDetails(countdown.shift)
             }
-            Countdown.None -> Text(stringResource(R.string.today_no_shifts))
+            Countdown.None -> Text(
+                text = stringResource(R.string.today_no_shifts),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
+}
+
+@Composable
+private fun CountdownTitle(text: String) {
+    Text(text, style = MaterialTheme.typography.titleSmall, fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold)
+}
+
+@Composable
+private fun CountdownValue(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.displaySmall,
+        fontFamily = FontFamily.Serif,
+        fontWeight = FontWeight.Bold,
+        textAlign = TextAlign.Center,
+    )
 }
 
 @Composable
 private fun ShiftDetails(shift: Shift) {
-    Spacer(Modifier.height(8.dp))
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(shift.timeRange(), style = MaterialTheme.typography.bodyLarge)
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
-            shift.start.format(SHORT_DATE_FORMAT),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            text = shift.span().timeRange(),
+            style = MaterialTheme.typography.labelMedium,
+            fontFamily = FontFamily.Monospace,
+            fontWeight = FontWeight.Bold,
         )
+        Text(
+            text = shift.start.format(SHORT_DATE_FORMAT),
+            style = MaterialTheme.typography.labelMedium,
+            fontFamily = FontFamily.Monospace,
+        )
+    }
+}
+
+/** Ink on paper: the page's own background colour on a block of the primary foreground. */
+@Composable
+private fun WhoIsOnShiftButton(onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        shape = RoundedCornerShape(8.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.onBackground,
+            contentColor = MaterialTheme.colorScheme.background,
+        ),
+        contentPadding = PaddingValues(horizontal = 40.dp, vertical = 8.dp),
+    ) {
+        Text(stringResource(R.string.today_who_is_on_shift), fontWeight = FontWeight.SemiBold)
+    }
+}
+
+/**
+ * The planned shifts ahead, in the same day timeline as the free shifts on the Calendar tab.
+ * The axis stays put while the days scroll under it. [upcoming] is null until the shifts load;
+ * the header shows the spinner or the error meanwhile.
+ */
+@Composable
+private fun UpcomingShifts(upcoming: List<Shift>?, onOpenDay: (LocalDate) -> Unit, modifier: Modifier = Modifier) {
+    Column(modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.today_upcoming),
+            style = MaterialTheme.typography.titleMedium,
+            fontFamily = FontFamily.Serif,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(bottom = 8.dp),
+        )
+        when {
+            upcoming == null -> Unit
+            upcoming.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(
+                    text = stringResource(R.string.today_no_shifts),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            else -> {
+                val entries = upcoming.map { ShiftTimelineEntry(it.start, it.end, description = it.span().timeRange()) }
+                ShiftTimelineAxis()
+                ShiftDayTimelineRows(
+                    entries = entries,
+                    onOpenDay = onOpenDay,
+                    background = MaterialTheme.backgroundSecondary,
+                    modifier = Modifier
+                        .verticalScroll(rememberScrollState())
+                        .padding(bottom = 8.dp),
+                )
+            }
+        }
     }
 }
 
@@ -243,8 +363,6 @@ private fun remainingText(remaining: RemainingTime): String {
     }
     return pluralStringResource(res, count, count)
 }
-
-private fun Shift.timeRange(): String = "${start.format(TIME_FORMAT)} - ${end.format(TIME_FORMAT)}"
 
 // --- Previews ---------------------------------------------------------------
 // Previews render composables in the IDE without running the app. They can only be
@@ -264,9 +382,12 @@ private object TodayPreviewData {
     private val laterShifts = listOf(
         shift(2, "2026-09-06", "08:00", "16:00"),
         shift(3, "2026-09-11", "17:00", "01:00"),
+        shift(4, "2026-09-12", "07:00", "11:00"),
+        shift(5, "2026-09-12", "17:00", "23:00"),
+        shift(6, "2026-09-15", "10:00", "18:00"),
     )
 
-    /** A shift running right now, plus two future ones. */
+    /** A shift running right now, plus the future ones. */
     val ongoing = laterShifts + shift(1, "2026-09-04", "16:00", "23:00")
 
     /** Nothing running; the next shift is two days out. */
@@ -289,29 +410,29 @@ private fun PreviewTodayContent(uiState: TodayUiState) {
     }
 }
 
-@Preview(name = "Ongoing shift", showBackground = true)
+@Preview(widthDp = 360, heightDp = 760, name = "Ongoing shift")
 @Composable
 private fun TodayOngoingPreview() = PreviewTodayContent(TodayPreviewData.state(TodayPreviewData.ongoing))
 
-@Preview(name = "Upcoming shift", showBackground = true)
+@Preview(widthDp = 360, heightDp = 760, name = "Upcoming shift")
 @Composable
 private fun TodayUpcomingPreview() = PreviewTodayContent(TodayPreviewData.state(TodayPreviewData.upcomingOnly))
 
-@Preview(name = "No shifts", showBackground = true)
+@Preview(widthDp = 360, heightDp = 760, name = "No shifts")
 @Composable
 private fun TodayEmptyPreview() = PreviewTodayContent(TodayPreviewData.state(emptyList()))
 
-@Preview(name = "Loading", showBackground = true)
+@Preview(widthDp = 360, heightDp = 760, name = "Loading")
 @Composable
 private fun TodayLoadingPreview() =
     PreviewTodayContent(TodayUiState(now = TodayPreviewData.now, isLoading = true))
 
-@Preview(name = "Error", showBackground = true)
+@Preview(widthDp = 360, heightDp = 760, name = "Error")
 @Composable
 private fun TodayErrorPreview() = PreviewTodayContent(
     TodayUiState(now = TodayPreviewData.now, errorMessage = "Network error: timeout")
 )
 
-@Preview(name = "Ongoing shift (dark)", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(widthDp = 360, heightDp = 760, name = "Ongoing shift (dark)", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun TodayOngoingDarkPreview() = PreviewTodayContent(TodayPreviewData.state(TodayPreviewData.ongoing))

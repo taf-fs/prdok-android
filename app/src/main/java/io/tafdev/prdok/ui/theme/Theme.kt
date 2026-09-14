@@ -6,7 +6,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
@@ -89,16 +93,31 @@ private val DarkColorScheme = darkColorScheme(
     onErrorContainer = CpErrorContainerLight,
 )
 
+private val LocalBackgroundSecondary = staticCompositionLocalOf { CpBackgroundSecondaryLight }
+
+/**
+ * The palette's second background, the one the lower part of Today sits on. It maps to no single
+ * Material role (surfaceContainerLowest in light, surfaceContainer in dark), so it is handed down
+ * on its own.
+ */
+val MaterialTheme.backgroundSecondary: Color
+    @Composable @ReadOnlyComposable
+    get() = LocalBackgroundSecondary.current
+
 @Composable
 fun PrdokForAndroidTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {
-    MaterialTheme(
-        colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
-        typography = Typography,
-        content = content,
-    )
+    CompositionLocalProvider(
+        LocalBackgroundSecondary provides if (darkTheme) CpBackgroundSecondaryDark else CpBackgroundSecondaryLight,
+    ) {
+        MaterialTheme(
+            colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
+            typography = Typography,
+            content = content,
+        )
+    }
 }
 
 /**

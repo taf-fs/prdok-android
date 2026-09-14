@@ -39,11 +39,11 @@
     <!-- Today -->
     <string name="today_profile">Profil</string>
     <string name="today_settings">Nastavení</string>
-    <string name="countdown_current_ends">Aktuální směna končí za</string>
-    <string name="countdown_next_starts">Další směna začíná</string>
+    <string name="countdown_current_ends">Směna končí za</string>
+    <string name="countdown_next_in">Příští směna je za</string>
+    <string name="countdown_next_soon">Příští směna je</string>
     <string name="countdown_today">dnes</string>
     <string name="countdown_tomorrow">zítra</string>
-    <string name="countdown_in">za %1$s</string>
     <plurals name="countdown_days">
         <item quantity="one">%d den</item>
         <item quantity="few">%d dny</item>
@@ -62,8 +62,9 @@
         <item quantity="many">%d minuty</item>
         <item quantity="other">%d minut</item>
     </plurals>
-    <string name="today_no_shifts">Žádné nadcházející směny</string>
-    <string name="today_who_is_on_shift">Kdo má směnu</string>
+    <string name="today_no_shifts">Žádné naplánované směny</string>
+    <string name="today_loading">Načítání směn…</string>
+    <string name="today_who_is_on_shift">Kdo je na směně</string>
     <string name="today_upcoming">Nadcházející směny</string>
     <string name="error_load_failed">Směny se nepodařilo načíst: %1$s</string>
 

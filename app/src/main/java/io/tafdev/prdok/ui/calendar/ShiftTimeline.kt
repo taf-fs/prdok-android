@@ -55,11 +55,15 @@ object ShiftTimeline {
      * always goes first, a new lane opens only when that many ranges really run at the same
      * moment, so the lane count is the smallest possible. Ranges that merely touch share a lane.
      */
-    fun lanes(ranges: List<Range>): List<List<Range>> {
-        val lanes = mutableListOf<MutableList<Range>>()
-        for (range in ranges.sortedWith(compareBy(Range::start, Range::end))) {
-            val free = lanes.firstOrNull { it.last().end <= range.start }
-            if (free != null) free += range else lanes += mutableListOf(range)
+    fun lanes(ranges: List<Range>): List<List<Range>> = lanes(ranges) { it }
+
+    /** The same packing for anything that has a [Range], so the lanes can carry more than positions. */
+    fun <T> lanes(items: List<T>, rangeOf: (T) -> Range): List<List<T>> {
+        val lanes = mutableListOf<MutableList<T>>()
+        for (item in items.sortedWith(compareBy({ rangeOf(it).start }, { rangeOf(it).end }))) {
+            val range = rangeOf(item)
+            val free = lanes.firstOrNull { rangeOf(it.last()).end <= range.start }
+            if (free != null) free += item else lanes += mutableListOf(item)
         }
         return lanes
     }
