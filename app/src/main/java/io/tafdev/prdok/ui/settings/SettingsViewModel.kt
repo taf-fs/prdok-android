@@ -45,6 +45,16 @@ class SettingsViewModel(
         viewModelScope.launch { settingsStore.setTheme(preference) }
     }
 
+    val notificationsEnabled: StateFlow<Boolean> = settingsStore.notificationsEnabled.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = false,
+    )
+
+    fun setNotificationsEnabled(enabled: Boolean) {
+        viewModelScope.launch { settingsStore.setNotificationsEnabled(enabled) }
+    }
+
     /**
      * On success the PairingStore empties and the root screen switches to Setup by
      * itself. On failure the pairing is kept and the error is shown.

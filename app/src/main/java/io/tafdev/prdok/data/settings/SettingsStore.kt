@@ -3,6 +3,7 @@ package io.tafdev.prdok.data.settings
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -46,6 +47,14 @@ interface SettingsStore {
     val theme: Flow<ThemePreference>
 
     suspend fun setTheme(theme: ThemePreference)
+
+    /**
+     * Whether the user wants notifications from the app. It follows the system permission:
+     * it is switched off whenever the app finds notifications blocked.
+     */
+    val notificationsEnabled: Flow<Boolean>
+
+    suspend fun setNotificationsEnabled(enabled: Boolean)
 }
 
 // One DataStore per file name, process-wide — hence the top-level delegate, as with pairing.
@@ -62,7 +71,15 @@ class DataStoreSettingsStore(context: Context) : SettingsStore {
         dataStore.edit { prefs -> prefs[THEME] = theme.stored }
     }
 
+    override val notificationsEnabled: Flow<Boolean> =
+        dataStore.data.map { prefs -> prefs[NOTIFICATIONS_ENABLED] ?: false }
+
+    override suspend fun setNotificationsEnabled(enabled: Boolean) {
+        dataStore.edit { prefs -> prefs[NOTIFICATIONS_ENABLED] = enabled }
+    }
+
     private companion object {
         val THEME = stringPreferencesKey("colorTheme")
+        val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notificationsEnabled")
     }
 }

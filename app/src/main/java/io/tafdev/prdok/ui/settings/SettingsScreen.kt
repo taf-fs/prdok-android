@@ -10,9 +10,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -28,6 +31,7 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -40,14 +44,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.tafdev.prdok.R
+import io.tafdev.prdok.ui.common.WithNotificationAccess
+import io.tafdev.prdok.ui.common.notificationsAllowed
 
-/**
- * Settings: app language (handed to the OS), colour theme, and the destructive unpair.
- * The notifications toggle joins them with the break timers.
- */
+/** Settings: app language (handed to the OS), colour theme, notifications, and the destructive unpair. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
@@ -57,9 +64,17 @@ fun SettingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val theme by viewModel.theme.collectAsStateWithLifecycle()
+    val notificationsEnabled by viewModel.notificationsEnabled.collectAsStateWithLifecycle()
     var confirmUnpair by rememberSaveable { mutableStateOf(false) }
     var showThemeSheet by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
+
+    // Runs each time the screen comes back to the front, including on return from the system
+    // settings: if notifications were blocked in the meantime, the toggle follows.
+    LifecycleResumeEffect(Unit) {
+        if (!context.notificationsAllowed()) viewModel.setNotificationsEnabled(false)
+        onPauseOrDispose { }
+    }
 
     Scaffold(
         modifier = modifier,
@@ -96,6 +111,34 @@ fun SettingsScreen(
                     supportingContent = { Text(theme.label()) },
                     modifier = Modifier.clickable { showThemeSheet = true },
                 )
+                HorizontalDivider()
+
+                Text(
+                    text = stringResource(R.string.settings_notifications),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 8.dp),
+                )
+                HorizontalDivider()
+                WithNotificationAccess(onRefused = { viewModel.setNotificationsEnabled(false) }) { requestAccess ->
+                    // toggleable makes the whole row the switch; the Switch itself only draws (onCheckedChange = null),
+                    // so a screen reader hears one control instead of a row and a switch.
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.settings_notifications_toggle)) },
+                        trailingContent = { Switch(checked = notificationsEnabled, onCheckedChange = null) },
+                        modifier = Modifier.toggleable(value = notificationsEnabled, role = Role.Switch) { on ->
+                            if (on) {
+                                requestAccess { viewModel.setNotificationsEnabled(true) }
+                            } else {
+                                viewModel.setNotificationsEnabled(false)
+                            }
+                        },
+                    )
+                }
+                HorizontalDivider()
+
+                Spacer(Modifier.height(24.dp))
                 HorizontalDivider()
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.settings_unpair)) },
