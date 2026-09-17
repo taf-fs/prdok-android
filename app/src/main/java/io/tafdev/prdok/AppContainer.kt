@@ -3,6 +3,9 @@ package io.tafdev.prdok
 import android.app.Application
 import android.content.Context
 import io.tafdev.prdok.data.api.PrdokApi
+import io.tafdev.prdok.data.breaktimer.AlarmManagerBreakAlarmScheduler
+import io.tafdev.prdok.data.breaktimer.BreakTimerManager
+import io.tafdev.prdok.data.breaktimer.DataStoreBreakTimerStore
 import io.tafdev.prdok.data.export.ContentResolverCalendarStore
 import io.tafdev.prdok.data.export.ShiftCalendarExporter
 import io.tafdev.prdok.data.pairing.DataStorePairingStore
@@ -31,6 +34,10 @@ class AppContainer(context: Context) {
     val pairingStore: PairingStore = DataStorePairingStore(context)
     // Kept apart from the pairing: unpairing wipes credentials, but the set theme should stay
     val settingsStore: SettingsStore = DataStoreSettingsStore(context)
+    val breakTimerManager = BreakTimerManager(
+        DataStoreBreakTimerStore(context),
+        AlarmManagerBreakAlarmScheduler(context),
+    )
     // context.cacheDir is the OS-managed cache location: it survives restarts but the
     // system may wipe it under storage pressure, which is exactly right for a refetchable cache.
     private val cacheDir = File(context.cacheDir, "prdok")

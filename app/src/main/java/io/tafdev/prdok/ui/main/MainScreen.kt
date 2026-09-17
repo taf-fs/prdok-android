@@ -43,6 +43,7 @@ import io.tafdev.prdok.ui.settings.SettingsScreen
 import io.tafdev.prdok.ui.settings.SettingsViewModel
 import io.tafdev.prdok.ui.theme.PrdokForAndroidTheme
 import io.tafdev.prdok.ui.theme.SystemBarsAppearance
+import io.tafdev.prdok.ui.today.BreakTimerViewModel
 import io.tafdev.prdok.ui.today.TodayScreen
 import io.tafdev.prdok.ui.today.TodayViewModel
 import io.tafdev.prdok.ui.web.PortalBrowserScreen
@@ -127,8 +128,12 @@ fun MainScreen(
                         // Scoped to the Activity, so switching tabs and back keeps the loaded
                         // data; the ticker inside pauses while nothing collects it.
                         val todayViewModel: TodayViewModel = viewModel { TodayViewModel(container.shiftRepository) }
+                        val breakTimerViewModel: BreakTimerViewModel = viewModel {
+                            BreakTimerViewModel(container.breakTimerManager, container.settingsStore)
+                        }
                         TodayScreen(
                             viewModel = todayViewModel,
+                            breakTimerViewModel = breakTimerViewModel,
                             onOpenProfile = { /* Profile screen: later phase */ },
                             onOpenSettings = { showSettings = true },
                             onWhoIsOnShift = { date -> openPage = pages.whoIsOnShift(date) },

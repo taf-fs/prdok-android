@@ -69,7 +69,7 @@ import java.util.Locale
 
 private val SHORT_DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.")
 
-/** How much of the height below the status bar the header takes, as on iOS. */
+/** How much of the height below the status bar the header takes. */
 private const val HEADER_SHARE = 0.55f
 private val SECTION_GAP = 20.dp
 private val TOP_BAR_ICON_SIZE = 28.dp
@@ -81,6 +81,7 @@ private val TOP_BAR_ICON_SIZE = 28.dp
 @Composable
 fun TodayScreen(
     viewModel: TodayViewModel,
+    breakTimerViewModel: BreakTimerViewModel,
     onOpenProfile: () -> Unit,
     onOpenSettings: () -> Unit,
     onWhoIsOnShift: (LocalDate) -> Unit,
@@ -94,14 +95,18 @@ fun TodayScreen(
         onWhoIsOnShift = onWhoIsOnShift,
         onRetry = viewModel::refresh,
         modifier = modifier,
+        breakTimer = { BreakTimerRow(breakTimerViewModel) },
     )
 }
 
 /**
  * Stateless rendering of [TodayUiState]: no ViewModel, no clock, no network.
  *
- * Laid out like iOS: a header on the primary background taking the upper part of the screen
- * (date bar, countdown, who is on shift), then the upcoming shifts filling what is left.
+ * A header on the primary background taking the upper part of the screen (date bar, countdown,
+ * who is on shift), the break timers under it, then the upcoming shifts filling what is left.
+ *
+ * [breakTimer] is a slot: the timers have their own ViewModel, so the screen only says where
+ * they go, and previews can leave the slot empty or fill it with the stateless version.
  */
 @Composable
 fun TodayContent(
@@ -111,6 +116,7 @@ fun TodayContent(
     onWhoIsOnShift: (LocalDate) -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
+    breakTimer: @Composable () -> Unit = {},
 ) {
     val overview = uiState.overview
     // The header's background runs up behind the status bar, but its share is taken of the height below it.
@@ -135,8 +141,7 @@ fun TodayContent(
                     .height(headerHeight),
             )
 
-            // The pause timer goes here, between the header and the shifts (SimplePauseTimerView on iOS),
-            // with the same 16 dp side padding as the shifts below.
+            Box(Modifier.padding(horizontal = 16.dp)) { breakTimer() }
 
             UpcomingShifts(
                 upcoming = overview?.upcoming,
@@ -408,6 +413,7 @@ private fun PreviewTodayContent(uiState: TodayUiState) {
                 onOpenSettings = {},
                 onWhoIsOnShift = {},
                 onRetry = {},
+                breakTimer = { BreakTimerContent(active = null, onStart = {}, onCancel = {}) },
             )
         }
     }

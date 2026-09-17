@@ -62,6 +62,17 @@
     <string name="today_upcoming">Upcoming shifts</string>
     <string name="error_load_failed">Couldn\'t load shifts: %1$s</string>
 
+    <!-- Break timers -->
+    <string name="break_timer_length" translatable="false">%1$d min</string>
+    <string name="break_timer_set">Notification set %1$d mins from now</string>
+    <string name="break_timer_ends_at">Notification set on %1$s</string>
+    <string name="break_timer_cancel">Cancel break timer</string>
+    <string name="break_timer_finished">%1$d minutes have passed.</string>
+    <string name="break_timer_channel">Break timers</string>
+    <string name="notifications_denied_title">Notifications disabled</string>
+    <string name="notifications_denied_text">To receive notifications, enable them for this app in Settings.</string>
+    <string name="notifications_open_settings">Open Settings</string>
+
     <!-- Calendar -->
     <string name="calendar_title">Shift calendar_</string>
     <string name="calendar_previous_month">Previous month</string>
@@ -161,6 +172,8 @@
     <string name="settings_theme_system">System</string>
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_dark">Dark</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_notifications_toggle">Send notifications</string>
     <string name="settings_unpair">Unpair device</string>
     <string name="settings_unpair_confirm_title">Unpair this device?</string>
     <string name="settings_unpair_confirm_text">You will need to pair again to see your shifts.</string>

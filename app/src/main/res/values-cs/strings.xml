@@ -68,6 +68,16 @@
     <string name="today_upcoming">Nadcházející směny</string>
     <string name="error_load_failed">Směny se nepodařilo načíst: %1$s</string>
 
+    <!-- Break timers -->
+    <string name="break_timer_set">Oznámení se pošle za %1$d min</string>
+    <string name="break_timer_ends_at">Oznámení nastaveno na %1$s</string>
+    <string name="break_timer_cancel">Zrušit časovač pauzy</string>
+    <string name="break_timer_finished">Uplynulo %1$d minut.</string>
+    <string name="break_timer_channel">Časovač pauzy</string>
+    <string name="notifications_denied_title">Oznámení nepovolena</string>
+    <string name="notifications_denied_text">Chceš-li dostávat oznámení, povol je pro tuto aplikaci v Nastavení.</string>
+    <string name="notifications_open_settings">Otevřít Nastavení</string>
+
     <!-- Calendar -->
     <string name="calendar_title">Kalendář směn_</string>
     <string name="calendar_previous_month">Předchozí měsíc</string>
@@ -179,6 +189,8 @@
     <string name="settings_theme_system">Výchozí</string>
     <string name="settings_theme_light">Světlý</string>
     <string name="settings_theme_dark">Tmavý</string>
+    <string name="settings_notifications">Oznámení</string>
+    <string name="settings_notifications_toggle">Zasílat oznámení</string>
     <string name="settings_unpair">Odpárovat zařízení</string>
     <string name="settings_unpair_confirm_title">Odpárovat toto zařízení?</string>
     <string name="settings_unpair_confirm_text">Pro zobrazení směn bude potřeba znovu spárovat.</string>
