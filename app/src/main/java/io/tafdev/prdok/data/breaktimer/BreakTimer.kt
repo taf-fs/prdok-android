@@ -2,6 +2,7 @@ package io.tafdev.prdok.data.breaktimer
 
 import java.time.Duration
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -35,9 +36,18 @@ class BreakTimerManager(
         stored?.takeUnless { it.isOver(clock()) }
     }
 
-    /** Starting a timer replaces whatever was running, alarm included. */
-    suspend fun start(timer: BreakTimer) {
-        val active = ActiveBreak(timer, clock() + Duration.ofMinutes(timer.minutes.toLong()))
+    /**
+     * The break [timer] would be if it started now. Separate from [start] so the UI can show it
+     * straight away, without waiting for the write to storage.
+     *
+     * Cut to whole milliseconds, because that is all storage keeps. Otherwise the break read back
+     * would differ from this one by a few microseconds and count as a different break.
+     */
+    fun breakFor(timer: BreakTimer): ActiveBreak =
+        ActiveBreak(timer, clock().truncatedTo(ChronoUnit.MILLIS) + Duration.ofMinutes(timer.minutes.toLong()))
+
+    /** Starting a break replaces whatever was running, alarm included. */
+    suspend fun start(active: ActiveBreak) {
         store.save(active)
         alarms.schedule(active)
     }

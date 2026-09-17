@@ -41,7 +41,7 @@ class BreakTimerManagerTest {
 
     @Test
     fun `starting stores the end moment and schedules the alarm for it`() = runBlocking {
-        manager.start(BreakTimer.SHORT)
+        manager.start(manager.breakFor(BreakTimer.SHORT))
 
         val expected = ActiveBreak(BreakTimer.SHORT, Instant.parse("2026-09-16T10:15:00Z"))
         assertEquals(expected, store.saved.value)
@@ -51,8 +51,8 @@ class BreakTimerManagerTest {
 
     @Test
     fun `starting another timer replaces the running one`() = runBlocking {
-        manager.start(BreakTimer.SHORT)
-        manager.start(BreakTimer.LONG)
+        manager.start(manager.breakFor(BreakTimer.SHORT))
+        manager.start(manager.breakFor(BreakTimer.LONG))
 
         assertEquals(BreakTimer.LONG, store.saved.value?.timer)
         assertEquals(Instant.parse("2026-09-16T10:30:00Z"), alarms.scheduled?.endsAt)
@@ -60,7 +60,7 @@ class BreakTimerManagerTest {
 
     @Test
     fun `cancelling clears the break and its alarm`() = runBlocking {
-        manager.start(BreakTimer.LONG)
+        manager.start(manager.breakFor(BreakTimer.LONG))
         manager.cancel()
 
         assertNull(store.saved.value)
@@ -70,7 +70,7 @@ class BreakTimerManagerTest {
 
     @Test
     fun `a break that has run out reads as none, and reconcile clears it without touching the alarm`() = runBlocking {
-        manager.start(BreakTimer.SHORT)
+        manager.start(manager.breakFor(BreakTimer.SHORT))
         now = start.plusSeconds(15 * 60)
 
         assertNull(manager.active.first())
@@ -83,12 +83,21 @@ class BreakTimerManagerTest {
 
     @Test
     fun `reconcile keeps a break that is still running`() = runBlocking {
-        manager.start(BreakTimer.LONG)
+        manager.start(manager.breakFor(BreakTimer.LONG))
         now = start.plusSeconds(29 * 60)
 
         manager.reconcile()
 
         assertEquals(BreakTimer.LONG, manager.active.first()?.timer)
+    }
+
+    @Test
+    fun `a new break reads back from millisecond storage unchanged`() {
+        now = Instant.parse("2026-09-16T10:00:00.123456789Z")
+
+        val active = manager.breakFor(BreakTimer.SHORT)
+
+        assertEquals(active.endsAt, Instant.ofEpochMilli(active.endsAt.toEpochMilli()))
     }
 
     @Test

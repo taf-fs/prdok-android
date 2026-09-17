@@ -46,13 +46,14 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -104,8 +105,10 @@ fun BreakTimerRow(viewModel: BreakTimerViewModel, modifier: Modifier = Modifier)
     WithNotificationAccess(onRefused = viewModel::onNotificationsRefused) { requestAccess ->
         BreakTimerContent(
             active = active,
+            justStarted = uiState.justStarted,
             onStart = { timer -> requestAccess { viewModel.start(timer) } },
             onCancel = viewModel::cancel,
+            onStartAnnounced = viewModel::onStartAnnounced,
             modifier = modifier,
         )
     }
@@ -118,6 +121,8 @@ fun BreakTimerRow(viewModel: BreakTimerViewModel, modifier: Modifier = Modifier)
  * Every tile is always composed and positioned by hand: its width, horizontal offset and
  * opacity each animate towards a target worked out from [active]. That keeps the running tile
  * and the leaving tile moving at the same time, on the same spring.
+ *
+ * [justStarted] is true only right after a tap started [active]; see [RunningLabel].
  */
 @Composable
 fun BreakTimerContent(
@@ -125,6 +130,8 @@ fun BreakTimerContent(
     onStart: (BreakTimer) -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
+    justStarted: Boolean = false,
+    onStartAnnounced: () -> Unit = {},
 ) {
     BoxWithConstraints(modifier.fillMaxWidth().aspectRatio(ROW_ASPECT_RATIO)) {
         val fullWidth = maxWidth
@@ -136,8 +143,12 @@ fun BreakTimerContent(
             val isLeading = timer == BreakTimer.SHORT
             val restingX = if (isLeading) 0.dp else halfWidth + TILE_GAP
 
-            val width by animateDpAsState(if (isRunning) fullWidth else halfWidth, tileSpring(), label = "width")
-            val x by animateDpAsState(
+            // Kept as State objects, not unwrapped with `by`: reading `.value` here in the composable
+            // body would recompose the whole tile, text and all, on every animation frame. Read
+            // inside the layout and graphicsLayer lambdas instead, a new value only re-runs those
+            // lambdas: one re-measure and one redraw, no recomposition.
+            val width = animateDpAsState(if (isRunning) fullWidth else halfWidth, tileSpring(), label = "width")
+            val x = animateDpAsState(
                 targetValue = when {
                     isRunning -> 0.dp
                     // Out past its own edge by its own width.
@@ -147,8 +158,7 @@ fun BreakTimerContent(
                 animationSpec = tileSpring(),
                 label = "offset",
             )
-            val alpha by animateFloatAsState(if (isHidden) 0f else 1f, tileSpring(), label = "alpha")
-            val density = LocalDensity.current
+            val alpha = animateFloatAsState(if (isHidden) 0f else 1f, tileSpring(), label = "alpha")
 
             TimerTile(
                 timer = timer,
@@ -156,14 +166,19 @@ fun BreakTimerContent(
                 enabled = active == null,
                 onStart = { onStart(timer) },
                 onCancel = onCancel,
+                justStarted = justStarted,
+                onStartAnnounced = onStartAnnounced,
                 modifier = Modifier
-                    // graphicsLayer moves and fades at draw time, without re-measuring the row every frame.
                     .graphicsLayer {
-                        translationX = with(density) { x.toPx() }
-                        this.alpha = alpha
+                        translationX = x.value.toPx()
+                        // The spring overshoots a touch past 0 and 1; opacity can't.
+                        this.alpha = alpha.value.coerceIn(0f, 1f)
                     }
-                    .width(width)
-                    .fillMaxHeight(),
+                    .layout { measurable, constraints ->
+                        val tileWidth = width.value.roundToPx()
+                        val placeable = measurable.measure(Constraints.fixed(tileWidth, constraints.maxHeight))
+                        layout(tileWidth, constraints.maxHeight) { placeable.place(0, 0) }
+                    },
             )
         }
     }
@@ -176,22 +191,28 @@ private fun TimerTile(
     enabled: Boolean,
     onStart: () -> Unit,
     onCancel: () -> Unit,
+    justStarted: Boolean,
+    onStartAnnounced: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
         modifier
             .clip(TILE_SHAPE)
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-            .clickable(enabled = enabled, role = Role.Button, onClick = onStart),
+            // indication = null: no ripple. The tile starts moving the moment it is tapped, and that
+            // movement is the feedback; a ripple drawn inside it would only get dragged along.
+            .clickable(interactionSource = null, indication = null, enabled = enabled, role = Role.Button, onClick = onStart),
     ) {
         // contentKey: only switching between idle and running cross-fades, not every new state.
+        // using(null) turns off AnimatedContent's own size animation, which would otherwise
+        // fight the width spring above.
         AnimatedContent(
             targetState = running,
             contentKey = { it != null },
-            transitionSpec = { fadeIn() togetherWith fadeOut() },
+            transitionSpec = { (fadeIn() togetherWith fadeOut()).using(null) },
             label = "tile",
         ) { state ->
-            if (state == null) IdleLabel(timer) else RunningLabel(state, onCancel)
+            if (state == null) IdleLabel(timer) else RunningLabel(state, justStarted, onStartAnnounced, onCancel)
         }
     }
 }
@@ -214,15 +235,29 @@ private fun IdleLabel(timer: BreakTimer) {
 }
 
 /**
- * First "notification set 15 min from now" with a check, then after a moment the clock time it
- * will arrive, sliding up into place. The small cross cancels.
+ * The clock time the notification will arrive. Right after the tap that started the break, it
+ * first says "notification set 15 min from now" with a check, and the time slides up in its place
+ * a moment later. Coming back to the tab or reopening the app goes straight to the time.
+ * The small cross cancels.
+ *
+ * `remember` alone can't tell those cases apart: it is forgotten whenever the label leaves the
+ * screen, so every return would look like a fresh start. Whether the break was just started is
+ * kept in the ViewModel, which outlives the tab, and [onStartAnnounced] clears it once the time
+ * has been shown.
  */
 @Composable
-private fun RunningLabel(active: ActiveBreak, onCancel: () -> Unit) {
-    var showEndTime by remember(active.endsAt) { mutableStateOf(false) }
+private fun RunningLabel(
+    active: ActiveBreak,
+    justStarted: Boolean,
+    onStartAnnounced: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    var showEndTime by remember(active.endsAt) { mutableStateOf(!justStarted) }
     LaunchedEffect(active.endsAt) {
+        if (showEndTime) return@LaunchedEffect
         delay(END_TIME_DELAY_MS)
         showEndTime = true
+        onStartAnnounced()
     }
     val context = LocalContext.current
     // DateFormat.getTimeFormat follows the phone's 12/24-hour setting, which java.time alone doesn't know.
@@ -256,7 +291,7 @@ private fun RunningLabel(active: ActiveBreak, onCancel: () -> Unit) {
             modifier = Modifier
                 .size(32.dp)
                 .clip(RoundedCornerShape(50))
-                .clickable(role = Role.Button, onClick = onCancel),
+                .clickable(interactionSource = null, indication = null, role = Role.Button, onClick = onCancel),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
