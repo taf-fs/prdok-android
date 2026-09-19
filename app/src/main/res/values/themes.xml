@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.PrdokForAndroid" parent="android:Theme.Material.Light.NoActionBar">
+    <!-- An AppCompat theme because MainActivity is an AppCompatActivity, which refuses to start
+         under any other. Compose draws everything itself, so only the window background shows. -->
+    <style name="Theme.PrdokForAndroid" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowBackground">@color/cp_background_primary_light</item>
     </style>
 </resources>

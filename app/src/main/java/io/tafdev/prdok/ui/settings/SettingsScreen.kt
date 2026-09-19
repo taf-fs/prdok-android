@@ -6,16 +6,19 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -31,6 +34,7 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -42,19 +46,27 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.tafdev.prdok.R
+import io.tafdev.prdok.ui.common.TabTitle
 import io.tafdev.prdok.ui.common.WithNotificationAccess
 import io.tafdev.prdok.ui.common.notificationsAllowed
+import io.tafdev.prdok.ui.theme.backgroundSecondary
 
-/** Settings: app language (handed to the OS), colour theme, notifications, and the destructive unpair. */
+/**
+ * Settings: app language, colour theme, notifications, and the destructive unpair, grouped into
+ * rounded sections under the same big title the tabs use.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
@@ -67,6 +79,7 @@ fun SettingsScreen(
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsStateWithLifecycle()
     var confirmUnpair by rememberSaveable { mutableStateOf(false) }
     var showThemeSheet by rememberSaveable { mutableStateOf(false) }
+    var showLanguageSheet by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
 
     // Runs each time the screen comes back to the front, including on return from the system
@@ -79,8 +92,9 @@ fun SettingsScreen(
     Scaffold(
         modifier = modifier,
         topBar = {
+            // Only the back arrow: the title sits in the content, set like every tab's.
             TopAppBar(
-                title = { Text(stringResource(R.string.settings_title)) },
+                title = {},
                 navigationIcon = {
                     IconButton(onClick = onBack, enabled = !uiState.isUnpairing) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
@@ -94,58 +108,65 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
-            Column(Modifier.verticalScroll(rememberScrollState())) {
-                HorizontalDivider()
-                // Android has no in-app language picker of its own: the OS owns the per-app
-                // language list (declared in res/xml/locales_config.xml), so this hands off.
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.settings_language)) },
-                    trailingContent = {
-                        Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = null)
-                    },
-                    modifier = Modifier.clickable { context.openLanguageSettings() },
-                )
-                HorizontalDivider()
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.settings_theme)) },
-                    supportingContent = { Text(theme.label()) },
-                    modifier = Modifier.clickable { showThemeSheet = true },
-                )
-                HorizontalDivider()
+            Column(
+                modifier = Modifier
+                    .verticalScroll(rememberScrollState())
+                    .padding(start = 16.dp, end = 16.dp, bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp),
+            ) {
+                TabTitle(stringResource(R.string.settings_title))
 
-                Text(
-                    text = stringResource(R.string.settings_notifications),
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 8.dp),
-                )
-                HorizontalDivider()
-                WithNotificationAccess(onRefused = { viewModel.setNotificationsEnabled(false) }) { requestAccess ->
-                    // toggleable makes the whole row the switch; the Switch itself only draws (onCheckedChange = null),
-                    // so a screen reader hears one control instead of a row and a switch.
+                SettingsSection(title = stringResource(R.string.settings_general)) {
                     ListItem(
-                        headlineContent = { Text(stringResource(R.string.settings_notifications_toggle)) },
-                        trailingContent = { Switch(checked = notificationsEnabled, onCheckedChange = null) },
-                        modifier = Modifier.toggleable(value = notificationsEnabled, role = Role.Switch) { on ->
-                            if (on) {
-                                requestAccess { viewModel.setNotificationsEnabled(true) }
-                            } else {
-                                viewModel.setNotificationsEnabled(false)
-                            }
+                        headlineContent = { Text(stringResource(R.string.settings_language)) },
+                        trailingContent = if (hasSystemLanguagePicker) {
+                            // It leaves the app for the system's screen, so say so.
+                            { Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = null) }
+                        } else {
+                            null
+                        },
+                        colors = SettingsRowColors,
+                        modifier = Modifier.clickable {
+                            if (hasSystemLanguagePicker) context.openLanguageSettings() else showLanguageSheet = true
                         },
                     )
+                    SettingsDivider()
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.settings_theme)) },
+                        colors = SettingsRowColors,
+                        modifier = Modifier.clickable { showThemeSheet = true },
+                    )
                 }
-                HorizontalDivider()
 
-                Spacer(Modifier.height(24.dp))
-                HorizontalDivider()
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.settings_unpair)) },
-                    colors = ListItemDefaults.colors(headlineColor = MaterialTheme.colorScheme.error),
-                    modifier = Modifier.clickable(enabled = !uiState.isUnpairing) { confirmUnpair = true },
-                )
-                HorizontalDivider()
+                SettingsSection(title = stringResource(R.string.settings_notifications)) {
+                    WithNotificationAccess(onRefused = { viewModel.setNotificationsEnabled(false) }) { requestAccess ->
+                        // toggleable makes the whole row the switch; the Switch itself only draws (onCheckedChange = null),
+                        // so a screen reader hears one control instead of a row and a switch.
+                        ListItem(
+                            headlineContent = { Text(stringResource(R.string.settings_notifications_toggle)) },
+                            trailingContent = { Switch(checked = notificationsEnabled, onCheckedChange = null) },
+                            colors = SettingsRowColors,
+                            modifier = Modifier.toggleable(value = notificationsEnabled, role = Role.Switch) { on ->
+                                if (on) {
+                                    requestAccess { viewModel.setNotificationsEnabled(true) }
+                                } else {
+                                    viewModel.setNotificationsEnabled(false)
+                                }
+                            },
+                        )
+                    }
+                }
+
+                SettingsSection {
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.settings_unpair)) },
+                        colors = ListItemDefaults.colors(
+                            containerColor = Color.Transparent,
+                            headlineColor = MaterialTheme.colorScheme.error,
+                        ),
+                        modifier = Modifier.clickable(enabled = !uiState.isUnpairing) { confirmUnpair = true },
+                    )
+                }
             }
 
             // Full-screen overlay while the unpair request is in flight.
@@ -160,6 +181,19 @@ fun SettingsScreen(
                 }
             }
         }
+    }
+
+    if (showLanguageSheet) {
+        LanguageSheet(
+            selected = AppLanguage.current(),
+            onSelect = { language ->
+                // Closed first: picking a language recreates the screen, and the sheet
+                // shouldn't come back with it.
+                showLanguageSheet = false
+                language.makeCurrent()
+            },
+            onDismiss = { showLanguageSheet = false },
+        )
     }
 
     if (showThemeSheet) {
@@ -207,19 +241,59 @@ fun SettingsScreen(
 }
 
 /**
- * Opens the app's language screen on Android 13+, where per-app languages exist, and the
- * app's system settings page below that — the nearest thing those versions have.
+ * Android 13 added a per-app language screen to the system settings (built from
+ * res/xml/locales_config.xml). From there on the app hands off to it; below, it picks in-app.
  */
+private val hasSystemLanguagePicker = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 private fun Context.openLanguageSettings() {
-    val uri = Uri.fromParts("package", packageName, null)
-    val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        Intent(Settings.ACTION_APP_LOCALE_SETTINGS, uri)
-    } else {
-        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, uri)
-    }
+    val intent = Intent(Settings.ACTION_APP_LOCALE_SETTINGS, Uri.fromParts("package", packageName, null))
     try {
         startActivity(intent)
     } catch (_: ActivityNotFoundException) {
-        // Some builds ship no such screen; there is nothing useful to fall back to.
+        // Some manufacturers' builds leave the screen out; the in-app sheet would be the
+        // fallback, but no such device has turned up yet.
     }
+}
+
+/** Rows draw no background of their own; the section's rounded card behind them shows through. */
+private val SettingsRowColors
+    @Composable get() = ListItemDefaults.colors(containerColor = Color.Transparent)
+
+/**
+ * A group of rows on one rounded card, with an optional monospace heading above it. The card is
+ * the palette's second background, so it stands off the screen's own.
+ */
+@Composable
+private fun SettingsSection(
+    title: String? = null,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (title != null) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .semantics { heading() },
+            )
+        }
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.backgroundSecondary,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Column(content = content)
+        }
+    }
+}
+
+/** A hairline between rows, starting where the text does, as grouped lists draw it. */
+@Composable
+private fun SettingsDivider() {
+    HorizontalDivider(Modifier.padding(start = 16.dp))
 }

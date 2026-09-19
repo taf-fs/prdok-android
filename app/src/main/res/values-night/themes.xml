@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.PrdokForAndroid" parent="android:Theme.Material.NoActionBar">
+    <style name="Theme.PrdokForAndroid" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowBackground">@color/cp_background_primary_dark</item>
     </style>
 </resources>

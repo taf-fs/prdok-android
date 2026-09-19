@@ -44,6 +44,18 @@
         <receiver
             android:name=".data.breaktimer.BreakTimerReceiver"
             android:exported="false" />
+
+        <!-- Before Android 13 the system keeps no per-app language, so AppCompat stores the one
+             picked in Settings itself and reapplies it on every launch. From 13 on it hands the
+             choice to the system and this does nothing. -->
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="true" />
+        </service>
     </application>
 
 </manifest>
