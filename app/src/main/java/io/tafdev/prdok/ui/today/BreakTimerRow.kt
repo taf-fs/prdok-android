@@ -56,7 +56,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import io.tafdev.prdok.R
 import io.tafdev.prdok.data.breaktimer.ActiveBreak
 import io.tafdev.prdok.data.breaktimer.BreakTimer
@@ -88,12 +91,21 @@ fun BreakTimerRow(viewModel: BreakTimerViewModel, modifier: Modifier = Modifier)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val active = uiState.active
 
-    // Suspends until the end moment, then clears the break. Keyed on the end moment, so a
-    // cancelled or replaced break takes its waiting coroutine with it.
-    LaunchedEffect(active?.endsAt) {
+    // Waits until the end moment, then clears the break. Keyed on the end moment, so a cancelled
+    // or replaced break takes its waiting coroutine with it.
+    //
+    // A plain `delay` isn't enough on its own: on the main thread it counts uptime, which stops
+    // while the phone sleeps with the screen off, so a 15-minute wait can take far longer than 15
+    // minutes of real time. repeatOnLifecycle cancels the wait whenever the screen leaves the
+    // foreground and starts it again on return, measuring afresh from the real clock. A break
+    // that ended in the meantime is cleared the moment the app is back in front.
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    LaunchedEffect(active?.endsAt, lifecycle) {
         val endsAt = active?.endsAt ?: return@LaunchedEffect
-        delay(Duration.between(Instant.now(), endsAt).toMillis().coerceAtLeast(0))
-        viewModel.onTimeUp()
+        lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            delay(Duration.between(Instant.now(), endsAt).toMillis().coerceAtLeast(0))
+            viewModel.onTimeUp()
+        }
     }
 
     if (!uiState.loaded) {
