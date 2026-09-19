@@ -63,6 +63,18 @@ class PrdokApiTest {
         assertTrue(body.contains("kdy=2026-08"))
     }
 
+    @Test
+    fun `mojedata reads the profile object`() = runBlocking {
+        enqueue(
+            """{"ulozsi":[],"err":[],"mojedata":{"jmeno":"Jana N.","datum_nastup":"2024-08-30",
+              "kompetence1":"202409","kompetence2":"0","kompetence3":"0","kompetence4":"0",
+              "kompetence5":"0","kompetence6":"0","kompetence7":"0"}}"""
+        )
+        val profile = api.fetchProfile("k", "testprovoz")
+        assertTrue(server.takeRequest().body.readUtf8().contains("akce=mojedata"))
+        assertEquals("Jana N.", profile.name)
+    }
+
     // -- response interpretation ---------------------------------------------
 
     @Test

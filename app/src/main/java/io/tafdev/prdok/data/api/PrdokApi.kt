@@ -3,6 +3,8 @@ package io.tafdev.prdok.data.api
 import io.tafdev.prdok.data.model.Credentials
 import io.tafdev.prdok.data.model.FreeShift
 import io.tafdev.prdok.data.model.Shift
+import io.tafdev.prdok.data.profile.Profile
+import io.tafdev.prdok.data.profile.ProfileParser
 import java.io.IOException
 import java.time.LocalDate
 import java.time.YearMonth
@@ -160,6 +162,13 @@ class PrdokApi(
         val envelope = call(klic, provoz, akce = "smeny_handl")
         requireEmployee(envelope)
         return ShiftParser.parseFreeShifts(envelope["smeny_handl"])
+    }
+
+    /** `akce=mojedata` — the employee's own profile. */
+    suspend fun fetchProfile(klic: String, provoz: String): Profile {
+        val envelope = call(klic, provoz, akce = "mojedata")
+        requireEmployee(envelope)
+        return ProfileParser.parse(envelope["mojedata"])
     }
 
     /**
