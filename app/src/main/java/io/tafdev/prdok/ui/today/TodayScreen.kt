@@ -49,6 +49,7 @@ import io.tafdev.prdok.R
 import io.tafdev.prdok.data.model.PragueTime
 import io.tafdev.prdok.data.model.Shift
 import io.tafdev.prdok.data.model.ShiftKind
+import io.tafdev.prdok.data.model.ShiftRole
 import io.tafdev.prdok.data.shifts.Countdown
 import io.tafdev.prdok.data.shifts.CountdownUnit
 import io.tafdev.prdok.data.shifts.RemainingTime
@@ -56,9 +57,9 @@ import io.tafdev.prdok.data.shifts.StartsIn
 import io.tafdev.prdok.data.shifts.TodayOverview
 import io.tafdev.prdok.ui.calendar.ShiftDayTimelineRows
 import io.tafdev.prdok.ui.calendar.ShiftTimelineAxis
-import io.tafdev.prdok.ui.calendar.ShiftTimelineEntry
 import io.tafdev.prdok.ui.calendar.span
 import io.tafdev.prdok.ui.calendar.timeRange
+import io.tafdev.prdok.ui.calendar.timelineEntry
 import io.tafdev.prdok.ui.theme.PrdokForAndroidTheme
 import io.tafdev.prdok.ui.theme.backgroundSecondary
 import java.time.LocalDate
@@ -344,7 +345,8 @@ private fun UpcomingShifts(upcoming: List<Shift>?, onOpenDay: (LocalDate) -> Uni
                 )
             }
             else -> {
-                val entries = upcoming.map { ShiftTimelineEntry(it.start, it.end, description = it.span().timeRange()) }
+                // map is an inline function, so its lambda may call the composable timelineEntry().
+                val entries = upcoming.map { timelineEntry(it.start, it.end, it.role) }
                 ShiftTimelineAxis()
                 ShiftDayTimelineRows(
                     entries = entries,
@@ -378,17 +380,17 @@ private object TodayPreviewData {
     /** A fixed "now" so previews are deterministic: Friday 2026-09-04, 18:30 Prague. */
     val now: ZonedDateTime = ZonedDateTime.of(2026, 9, 4, 18, 30, 0, 0, PragueTime.ZONE)
 
-    private fun shift(id: Int, date: String, from: String, to: String): Shift {
+    private fun shift(id: Int, date: String, from: String, to: String, role: ShiftRole = ShiftRole.REGULAR): Shift {
         val start = ZonedDateTime.of(LocalDate.parse(date), LocalTime.parse(from), PragueTime.ZONE)
         var end = ZonedDateTime.of(LocalDate.parse(date), LocalTime.parse(to), PragueTime.ZONE)
         if (end.isBefore(start)) end = end.plusDays(1)
-        return Shift(id, ShiftKind.PLANNED, start, end)
+        return Shift(id, ShiftKind.PLANNED, start, end, role)
     }
 
     private val laterShifts = listOf(
         shift(2, "2026-09-06", "08:00", "16:00"),
-        shift(3, "2026-09-11", "17:00", "01:00"),
-        shift(4, "2026-09-12", "07:00", "11:00"),
+        shift(3, "2026-09-11", "17:00", "01:00", ShiftRole.MANAGER),
+        shift(4, "2026-09-12", "07:00", "11:00", ShiftRole.BARISTA),
         shift(5, "2026-09-12", "17:00", "23:00"),
         shift(6, "2026-09-15", "10:00", "18:00"),
     )
