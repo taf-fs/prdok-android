@@ -39,6 +39,8 @@ import io.tafdev.prdok.ui.ebony.EbonyScreen
 import io.tafdev.prdok.ui.ebony.rememberEbonyPageState
 import io.tafdev.prdok.ui.links.LinksScreen
 import io.tafdev.prdok.ui.links.PortalLink
+import io.tafdev.prdok.ui.profile.ProfileScreen
+import io.tafdev.prdok.ui.profile.ProfileViewModel
 import io.tafdev.prdok.ui.settings.SettingsScreen
 import io.tafdev.prdok.ui.settings.SettingsViewModel
 import io.tafdev.prdok.ui.theme.PrdokForAndroidTheme
@@ -62,7 +64,7 @@ private val PortalPageSaver = Saver<PortalPage?, List<Any>>(
 )
 
 /**
- * The paired part of the app: four tabs, the full-screen Settings page reached from Today,
+ * The paired part of the app: four tabs, the full-screen Profile and Settings pages reached from Today,
  * and the in-app browser drawn over everything. Still state-based switching rather than a
  * navigation library; the moment we need deep links or a deeper back stack, that changes.
  */
@@ -75,6 +77,7 @@ fun MainScreen(
 ) {
     var selectedTab by rememberSaveable { mutableStateOf(MainTab.TODAY) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
+    var showProfile by rememberSaveable { mutableStateOf(false) }
     var openPage by rememberSaveable(stateSaver = PortalPageSaver) { mutableStateOf<PortalPage?>(null) }
     var ebonyVisited by rememberSaveable { mutableStateOf(false) }
     val pages = container.portalPages
@@ -89,6 +92,13 @@ fun MainScreen(
     val darkTheme = themePreference.isDark(isSystemInDarkTheme()) && selectedTab != MainTab.EBONY
     PrdokForAndroidTheme(darkTheme = darkTheme) {
         SystemBarsAppearance(darkTheme)
+
+        if (showProfile) {
+            BackHandler { showProfile = false }
+            val profileViewModel: ProfileViewModel = viewModel { ProfileViewModel(container.profileRepository) }
+            ProfileScreen(profileViewModel, onBack = { showProfile = false }, modifier = modifier)
+            return@PrdokForAndroidTheme
+        }
 
         if (showSettings) {
             BackHandler { showSettings = false }
@@ -134,7 +144,7 @@ fun MainScreen(
                         TodayScreen(
                             viewModel = todayViewModel,
                             breakTimerViewModel = breakTimerViewModel,
-                            onOpenProfile = { /* Profile screen: later phase */ },
+                            onOpenProfile = { showProfile = true },
                             onOpenSettings = { showSettings = true },
                             onWhoIsOnShift = { date -> openPage = pages.whoIsOnShift(date) },
                             modifier = content,

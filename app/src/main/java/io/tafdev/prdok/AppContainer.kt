@@ -12,6 +12,7 @@ import io.tafdev.prdok.data.pairing.DataStorePairingStore
 import io.tafdev.prdok.data.pairing.PairingManager
 import io.tafdev.prdok.data.pairing.PairingStore
 import io.tafdev.prdok.data.portal.PortalPages
+import io.tafdev.prdok.data.profile.ProfileRepository
 import io.tafdev.prdok.data.portal.PortalSession
 import io.tafdev.prdok.data.portal.WebViewSessionCookieJar
 import io.tafdev.prdok.data.settings.DataStoreSettingsStore
@@ -44,6 +45,7 @@ class AppContainer(context: Context) {
     val shiftRepository = ShiftRepository(api, pairingStore, File(cacheDir, "shifts"))
     val openDaysRepository = OpenDaysRepository(api, pairingStore, File(cacheDir, "opendays"))
     val freeShiftRepository = FreeShiftRepository(api, pairingStore)
+    val profileRepository = ProfileRepository(api, pairingStore)
     val shiftCalendarExporter = ShiftCalendarExporter(
         shiftRepository,
         ContentResolverCalendarStore(context.contentResolver),

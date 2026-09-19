@@ -12,13 +12,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -26,7 +24,6 @@ import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -34,7 +31,6 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -50,18 +46,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.tafdev.prdok.R
+import io.tafdev.prdok.ui.common.GroupedRowColors
+import io.tafdev.prdok.ui.common.GroupedSection
+import io.tafdev.prdok.ui.common.GroupedSectionDivider
 import io.tafdev.prdok.ui.common.TabTitle
 import io.tafdev.prdok.ui.common.WithNotificationAccess
 import io.tafdev.prdok.ui.common.notificationsAllowed
-import io.tafdev.prdok.ui.theme.backgroundSecondary
 
 /**
  * Settings: app language, colour theme, notifications, and the destructive unpair, grouped into
@@ -116,7 +110,7 @@ fun SettingsScreen(
             ) {
                 TabTitle(stringResource(R.string.settings_title))
 
-                SettingsSection(title = stringResource(R.string.settings_general)) {
+                GroupedSection(title = stringResource(R.string.settings_general)) {
                     ListItem(
                         headlineContent = { Text(stringResource(R.string.settings_language)) },
                         trailingContent = if (hasSystemLanguagePicker) {
@@ -125,27 +119,27 @@ fun SettingsScreen(
                         } else {
                             null
                         },
-                        colors = SettingsRowColors,
+                        colors = GroupedRowColors,
                         modifier = Modifier.clickable {
                             if (hasSystemLanguagePicker) context.openLanguageSettings() else showLanguageSheet = true
                         },
                     )
-                    SettingsDivider()
+                    GroupedSectionDivider()
                     ListItem(
                         headlineContent = { Text(stringResource(R.string.settings_theme)) },
-                        colors = SettingsRowColors,
+                        colors = GroupedRowColors,
                         modifier = Modifier.clickable { showThemeSheet = true },
                     )
                 }
 
-                SettingsSection(title = stringResource(R.string.settings_notifications)) {
+                GroupedSection(title = stringResource(R.string.settings_notifications)) {
                     WithNotificationAccess(onRefused = { viewModel.setNotificationsEnabled(false) }) { requestAccess ->
                         // toggleable makes the whole row the switch; the Switch itself only draws (onCheckedChange = null),
                         // so a screen reader hears one control instead of a row and a switch.
                         ListItem(
                             headlineContent = { Text(stringResource(R.string.settings_notifications_toggle)) },
                             trailingContent = { Switch(checked = notificationsEnabled, onCheckedChange = null) },
-                            colors = SettingsRowColors,
+                            colors = GroupedRowColors,
                             modifier = Modifier.toggleable(value = notificationsEnabled, role = Role.Switch) { on ->
                                 if (on) {
                                     requestAccess { viewModel.setNotificationsEnabled(true) }
@@ -157,7 +151,7 @@ fun SettingsScreen(
                     }
                 }
 
-                SettingsSection {
+                GroupedSection {
                     ListItem(
                         headlineContent = { Text(stringResource(R.string.settings_unpair)) },
                         colors = ListItemDefaults.colors(
@@ -255,45 +249,4 @@ private fun Context.openLanguageSettings() {
         // Some manufacturers' builds leave the screen out; the in-app sheet would be the
         // fallback, but no such device has turned up yet.
     }
-}
-
-/** Rows draw no background of their own; the section's rounded card behind them shows through. */
-private val SettingsRowColors
-    @Composable get() = ListItemDefaults.colors(containerColor = Color.Transparent)
-
-/**
- * A group of rows on one rounded card, with an optional monospace heading above it. The card is
- * the palette's second background, so it stands off the screen's own.
- */
-@Composable
-private fun SettingsSection(
-    title: String? = null,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        if (title != null) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                fontFamily = FontFamily.Monospace,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .semantics { heading() },
-            )
-        }
-        Surface(
-            shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.backgroundSecondary,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Column(content = content)
-        }
-    }
-}
-
-/** A hairline between rows, starting where the text does, as grouped lists draw it. */
-@Composable
-private fun SettingsDivider() {
-    HorizontalDivider(Modifier.padding(start = 16.dp))
 }
