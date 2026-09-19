@@ -17,6 +17,12 @@
     <string name="error_missing_fields">Please fill in all three fields.</string>
     <string name="error_invalid_link">That doesn\'t look like a pairing link or QR code.</string>
     <string name="error_pairing_failed">Pairing failed: %1$s</string>
+    <string name="setup_connect_qr">Connect using QR code</string>
+    <string name="qr_title">Connect using QR</string>
+    <string name="qr_instructions">Point your camera at the QR code on the staff website</string>
+    <string name="qr_connecting">Connecting…</string>
+    <string name="qr_camera_needed">Prdok needs camera access to scan the QR code.</string>
+    <string name="error_invalid_qr">That QR code isn\'t a pairing code.</string>
 
     <!-- Tabs -->
     <string name="tab_today">Today</string>
@@ -71,7 +77,7 @@
     <string name="break_timer_channel">Break timers</string>
     <string name="notifications_denied_title">Notifications disabled</string>
     <string name="notifications_denied_text">To receive notifications, enable them for this app in Settings.</string>
-    <string name="notifications_open_settings">Open Settings</string>
+    <string name="open_settings">Open Settings</string>
 
     <!-- Calendar -->
     <string name="calendar_title">Shift calendar_</string>
@@ -164,6 +170,19 @@
     <string name="stats_suffix_actual">done</string>
     <string name="stats_or">or</string>
     <string name="stats_planned_inline">(%1$d pln.)</string>
+
+    <!-- Profile -->
+    <string name="profile_member_since">Member since %1$s</string>
+    <string name="profile_competencies">Competencies</string>
+    <string name="profile_loading">Loading profile…</string>
+    <string name="profile_error">Couldn\'t load profile</string>
+    <string name="competency_general_skills">general skills</string>
+    <string name="competency_placar">runner</string>
+    <string name="competency_barman">bartender</string>
+    <string name="competency_vrchni">head waiter</string>
+    <string name="competency_vycep">tap</string>
+    <string name="competency_barista">barista</string>
+    <string name="competency_kuchar">cook</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>

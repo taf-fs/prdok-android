@@ -15,6 +15,12 @@
     <uses-permission
         android:name="android.permission.SCHEDULE_EXACT_ALARM"
         android:maxSdkVersion="32" />
+    <!-- QR pairing: asked for at runtime when the scanner opens. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Not required: a device without a camera can still install and pair by typing. -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
 
     <application
         android:name=".PrdokApp"

@@ -89,7 +89,7 @@ fun WithNotificationAccess(
                 TextButton(onClick = {
                     showDeniedDialog = false
                     context.openNotificationSettings()
-                }) { Text(stringResource(R.string.notifications_open_settings)) }
+                }) { Text(stringResource(R.string.open_settings)) }
             },
             dismissButton = {
                 TextButton(onClick = { showDeniedDialog = false }) { Text(stringResource(R.string.cancel)) }

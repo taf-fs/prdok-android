@@ -19,6 +19,8 @@ kizitonwoseCalendar = "2.7.0"
 wheelPicker = "1.3.1"
 webkit = "1.17.0"
 appcompat = "1.7.1"
+camerax = "1.6.2"
+mlkitBarcode = "17.3.0"
 
 [libraries]
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
@@ -48,6 +50,11 @@ kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-cor
 kizitonwose-calendar-compose = { group = "com.kizitonwose.calendar", name = "compose", version.ref = "kizitonwoseCalendar" }
 wheel-picker-compose = { group = "io.github.darkokoa", name = "datetime-wheel-picker", version.ref = "wheelPicker" }
 androidx-webkit = { group = "androidx.webkit", name = "webkit", version.ref = "webkit" }
+androidx-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camerax" }
+androidx-camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }
+androidx-camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "camerax" }
+androidx-camera-mlkit-vision = { group = "androidx.camera", name = "camera-mlkit-vision", version.ref = "camerax" }
+mlkit-barcode-scanning = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "mlkitBarcode" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

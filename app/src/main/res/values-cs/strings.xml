@@ -17,6 +17,12 @@
     <string name="error_missing_fields">Vyplňte prosím všechna tři pole.</string>
     <string name="error_invalid_link">Tohle nevypadá jako párovací odkaz ani QR kód.</string>
     <string name="error_pairing_failed">Párování selhalo: %1$s</string>
+    <string name="setup_connect_qr">Připojit přes QR kód</string>
+    <string name="qr_title">Připojit pomocí QR</string>
+    <string name="qr_instructions">Zamiř fotoaparátem na QR kód na zaměstnaneckém webu.</string>
+    <string name="qr_connecting">Připojuji…</string>
+    <string name="qr_camera_needed">Prdok potřebuje přístup k fotoaparátu, aby mohl naskenovat QR kód.</string>
+    <string name="error_invalid_qr">Tohle není párovací QR kód.</string>
 
     <!-- Tabs -->
     <string name="tab_today">Dnes</string>
@@ -76,7 +82,7 @@
     <string name="break_timer_channel">Časovač pauzy</string>
     <string name="notifications_denied_title">Oznámení nepovolena</string>
     <string name="notifications_denied_text">Chceš-li dostávat oznámení, povol je pro tuto aplikaci v Nastavení.</string>
-    <string name="notifications_open_settings">Otevřít Nastavení</string>
+    <string name="open_settings">Otevřít Nastavení</string>
 
     <!-- Calendar -->
     <string name="calendar_title">Kalendář směn_</string>
@@ -181,6 +187,19 @@
     <string name="stats_suffix_actual">odp.</string>
     <string name="stats_or">nebo</string>
     <string name="stats_planned_inline">(%1$d plán.)</string>
+
+    <!-- Profile -->
+    <string name="profile_member_since">Členem od %1$s</string>
+    <string name="profile_competencies">Kompetence</string>
+    <string name="profile_loading">Načítám profil…</string>
+    <string name="profile_error">Profil se nepodařilo načíst</string>
+    <string name="competency_general_skills">obecné dovednosti</string>
+    <string name="competency_placar">placař</string>
+    <string name="competency_barman">barman</string>
+    <string name="competency_vrchni">vrchní</string>
+    <string name="competency_vycep">výčep</string>
+    <string name="competency_barista">barista</string>
+    <string name="competency_kuchar">kuchař</string>
 
     <!-- Settings -->
     <string name="settings_title">Nastavení</string>

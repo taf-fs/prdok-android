@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
 sealed class PairingError {
     data object MissingFields : PairingError()
     data object InvalidLink : PairingError()
+    data object InvalidQr : PairingError()
     data class Server(val message: String) : PairingError()
 }
 
@@ -46,6 +47,16 @@ class PairingViewModel(private val pairingManager: PairingManager) : ViewModel()
         val credentials = PairingInput.parse(link)
         if (credentials == null) {
             _uiState.update { it.copy(error = PairingError.InvalidLink) }
+            return
+        }
+        pair(credentials)
+    }
+
+    /** A scanned code; only the QR format counts here, a link encoded as QR does not. */
+    fun pairWithQr(payload: String) {
+        val credentials = PairingInput.fromQr(payload)
+        if (credentials == null) {
+            _uiState.update { it.copy(error = PairingError.InvalidQr) }
             return
         }
         pair(credentials)

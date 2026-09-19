@@ -1,6 +1,8 @@
 package io.tafdev.prdok.ui.setup
 
+import android.content.pm.PackageManager
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -15,10 +17,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -33,8 +37,12 @@ import io.tafdev.prdok.R
 @Composable
 fun SetupScreen(
     onConnect: () -> Unit,
+    onConnectWithQr: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // A tablet or TV without any camera has nothing to scan with, so it only gets the form.
+    val hasCamera = LocalContext.current.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
+
     Surface(
         modifier = modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background,
@@ -77,18 +85,32 @@ fun SetupScreen(
                 textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(8.dp))
-            Button(
-                onClick = onConnect,
-                shape = RoundedCornerShape(16.dp),
-                contentPadding = PaddingValues(vertical = 8.dp),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(
-                    text = stringResource(R.string.setup_connect),
-                    fontWeight = FontWeight.Bold,
-                )
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Button(
+                    onClick = onConnect,
+                    shape = RoundedCornerShape(16.dp),
+                    contentPadding = PaddingValues(vertical = 8.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        text = stringResource(R.string.setup_connect),
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                if (hasCamera) {
+                    TextButton(
+                        onClick = onConnectWithQr,
+                        contentPadding = PaddingValues(vertical = 8.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.setup_connect_qr),
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.secondary,
+                        )
+                    }
+                }
             }
-            // TODO: "Connect using QR code" joins here later on
         }
     }
 }

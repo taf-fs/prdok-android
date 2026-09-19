@@ -121,7 +121,7 @@ fun CredentialsScreen(
 
                 uiState.error?.let { error ->
                     Text(
-                        text = errorMessage(error),
+                        text = pairingErrorMessage(error),
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodyMedium,
                     )
@@ -161,9 +161,11 @@ fun CredentialsScreen(
     }
 }
 
+/** Shared with the QR scanner, which shows the same errors in a dialog. */
 @Composable
-private fun errorMessage(error: PairingError): String = when (error) {
+internal fun pairingErrorMessage(error: PairingError): String = when (error) {
     PairingError.MissingFields -> stringResource(R.string.error_missing_fields)
     PairingError.InvalidLink -> stringResource(R.string.error_invalid_link)
+    PairingError.InvalidQr -> stringResource(R.string.error_invalid_qr)
     is PairingError.Server -> stringResource(R.string.error_pairing_failed, error.message)
 }
