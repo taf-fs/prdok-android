@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -34,6 +35,8 @@ import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.coerceIn
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.tafdev.prdok.R
+import io.tafdev.prdok.data.model.ShiftRole
 import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -76,6 +79,30 @@ data class ShiftTimelineEntry(
     val letter: String? = null,
     val description: String,
 )
+
+/** The bars show no times and only a role letter, so a screen reader gets the times and role spelled out instead. */
+@Composable
+internal fun timelineEntry(start: ZonedDateTime, end: ZonedDateTime, role: ShiftRole) = ShiftTimelineEntry(
+    start = start,
+    end = end,
+    letter = role.letter,
+    description = listOfNotNull(TimeSpan(start, end).timeRange(), role.label()).joinToString(" "),
+)
+
+/** The portal's own `typ` marker, shown inside the bar. The screen reader gets [label] instead. */
+private val ShiftRole.letter: String?
+    get() = when (this) {
+        ShiftRole.MANAGER -> "v"
+        ShiftRole.BARISTA -> "b"
+        ShiftRole.REGULAR -> null
+    }
+
+@Composable
+private fun ShiftRole.label(): String? = when (this) {
+    ShiftRole.MANAGER -> stringResource(R.string.shift_role_manager)
+    ShiftRole.BARISTA -> stringResource(R.string.shift_role_barista)
+    ShiftRole.REGULAR -> null
+}
 
 /**
  * Axis and day rows together, for a caller that scrolls the whole thing.

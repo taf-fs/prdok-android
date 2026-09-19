@@ -1,10 +1,10 @@
 package io.tafdev.prdok.data.api
 
 import io.tafdev.prdok.data.model.FreeShift
-import io.tafdev.prdok.data.model.FreeShiftRole
 import io.tafdev.prdok.data.model.PragueTime
 import io.tafdev.prdok.data.model.Shift
 import io.tafdev.prdok.data.model.ShiftKind
+import io.tafdev.prdok.data.model.ShiftRole
 import java.time.LocalDate
 import java.time.ZonedDateTime
 import kotlinx.serialization.json.JsonArray
@@ -38,12 +38,7 @@ object ShiftParser {
             val row = element as? JsonObject ?: return@mapNotNull null
             val id = row.stringField("id")?.toIntOrNull() ?: return@mapNotNull null
             val (start, end) = parseTimeRange(row) ?: return@mapNotNull null
-            val role = when (row.stringField("typ")) {
-                "v" -> FreeShiftRole.MANAGER
-                "b" -> FreeShiftRole.BARISTA
-                else -> FreeShiftRole.REGULAR
-            }
-            FreeShift(id, start, end, role)
+            FreeShift(id, start, end, ShiftRole.fromMarker(row.stringField("typ")))
         }
     }
 
@@ -53,7 +48,9 @@ object ShiftParser {
             val obj = row as? JsonObject ?: return@mapNotNull null
             val id = obj.stringField("id")?.toIntOrNull() ?: return@mapNotNull null
             val (start, end) = parseTimeRange(obj) ?: return@mapNotNull null
-            Shift(id, kind, start, end)
+            // `typ` is the role only on roster rows; on dochazka it is an attendance code ("1").
+            val role = if (kind == ShiftKind.PLANNED) ShiftRole.fromMarker(obj.stringField("typ")) else ShiftRole.REGULAR
+            Shift(id, kind, start, end, role)
         }
     }
 

@@ -1,8 +1,8 @@
 package io.tafdev.prdok.data.api
 
-import io.tafdev.prdok.data.model.FreeShiftRole
 import io.tafdev.prdok.data.model.PragueTime
 import io.tafdev.prdok.data.model.ShiftKind
+import io.tafdev.prdok.data.model.ShiftRole
 import java.time.LocalTime
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
@@ -112,6 +112,31 @@ class ShiftParserTest {
         assertEquals(emptyList<Any>(), parse("""{"plan":"nope"}"""))
     }
 
+    @Test
+    fun `planned shifts take their role from typ, other kinds stay regular`() {
+        val shifts = parse(
+            """{
+              "dochazka":[{"id":"1","kdy":"2026-07-07","od":"15:59:00","do":"22:37:00","typ":"1"}],
+              "plan":[
+                {"id":"2","kdy":"2026-07-07","od":"16:00:00","do":"23:00:00","typ":"-","radek":"4","vlastnost":"0"},
+                {"id":"3","kdy":"2026-07-08","od":"16:00:00","do":"23:00:00","typ":"v"},
+                {"id":"4","kdy":"2026-07-09","od":"08:00:00","do":"12:00:00","typ":"b"}
+              ],
+              "moznosti":[{"id":"5","kdy":"2026-07-05","od":"16:00:00","do":"25:00:00","typ":""}]
+            }"""
+        )
+        assertEquals(
+            mapOf(
+                1 to ShiftRole.REGULAR,
+                2 to ShiftRole.REGULAR,
+                3 to ShiftRole.MANAGER,
+                4 to ShiftRole.BARISTA,
+                5 to ShiftRole.REGULAR,
+            ),
+            shifts.associate { it.id to it.role },
+        )
+    }
+
     // -- free shifts ---------------------------------------------------------
 
     @Test
@@ -128,10 +153,10 @@ class ShiftParserTest {
         )
         assertEquals(
             listOf(
-                FreeShiftRole.MANAGER,
-                FreeShiftRole.BARISTA,
-                FreeShiftRole.REGULAR,
-                FreeShiftRole.REGULAR,
+                ShiftRole.MANAGER,
+                ShiftRole.BARISTA,
+                ShiftRole.REGULAR,
+                ShiftRole.REGULAR,
             ),
             free.map { it.role },
         )

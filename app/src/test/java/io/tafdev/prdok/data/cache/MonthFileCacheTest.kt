@@ -3,6 +3,7 @@ package io.tafdev.prdok.data.cache
 import io.tafdev.prdok.data.model.PragueTime
 import io.tafdev.prdok.data.model.Shift
 import io.tafdev.prdok.data.model.ShiftKind
+import io.tafdev.prdok.data.model.ShiftRole
 import io.tafdev.prdok.data.shifts.ShiftCacheCodec
 import java.io.File
 import java.time.Instant
@@ -41,6 +42,24 @@ class MonthFileCacheTest {
         assertEquals(fetchedAt, entry.fetchedAt)
         assertEquals(listOf(shift), entry.value)
         assertEquals(PragueTime.ZONE, entry.value.single().start.zone)
+    }
+
+    @Test
+    fun `round-trips the shift role`() = runBlocking {
+        val cache = cache()
+        val manager = shift.copy(role = ShiftRole.MANAGER)
+        cache.write(month, CacheEntry(Instant.EPOCH, listOf(manager)))
+        assertEquals(listOf(manager), cache.read(month)!!.value)
+    }
+
+    @Test
+    fun `files cached before roles existed read back as regular`() = runBlocking {
+        val dir = File(tmp.root, "shifts").apply { mkdirs() }
+        File(dir, "shifts-2026-09.json").writeText(
+            """{"fetchedAt":0,"data":[{"id":7,"kind":"PLANNED",""" +
+                """"start":"${shift.start}","end":"${shift.end}"}]}"""
+        )
+        assertEquals(listOf(shift), cache().read(month)!!.value)
     }
 
     @Test

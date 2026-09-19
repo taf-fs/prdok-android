@@ -2,7 +2,7 @@ package io.tafdev.prdok.data.shifts
 
 import io.tafdev.prdok.data.api.PrdokApi
 import io.tafdev.prdok.data.api.PrdokApiException
-import io.tafdev.prdok.data.model.FreeShiftRole
+import io.tafdev.prdok.data.model.ShiftRole
 import io.tafdev.prdok.data.pairing.FakePairingStore
 import io.tafdev.prdok.data.pairing.Pairing
 import kotlinx.coroutines.runBlocking
@@ -48,7 +48,7 @@ class FreeShiftRepositoryTest {
         assertTrue(body.contains("akce=smeny_handl"))
         assertTrue(body.contains("klic=7abc"))
         assertEquals(listOf(1, 2), shifts.map { it.id })
-        assertEquals(listOf(FreeShiftRole.REGULAR, FreeShiftRole.MANAGER), shifts.map { it.role })
+        assertEquals(listOf(ShiftRole.REGULAR, ShiftRole.MANAGER), shifts.map { it.role })
     }
 
     @Test

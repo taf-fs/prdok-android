@@ -34,6 +34,8 @@
     <string name="links_title">Odkazy</string>
     <string name="link_employee_web">Zaměstnanecký web</string>
     <string name="link_contacts">Kontakty</string>
+    <string name="link_meeting_minutes">Zápisy</string>
+    <string name="link_files">Soubory</string>
     <string name="link_forum">Fórum</string>
 
     <!-- In-app browser -->
@@ -100,8 +102,8 @@
     <string name="free_shifts_title">Volné směny</string>
     <string name="free_shifts_empty">Žádné volné směny k převzetí.</string>
     <string name="free_shifts_error">Volné směny se nepodařilo načíst.</string>
-    <string name="free_shift_role_manager">vedoucí</string>
-    <string name="free_shift_role_barista">barista</string>
+    <string name="shift_role_manager">vedoucí</string>
+    <string name="shift_role_barista">barista</string>
 
     <!-- Multi-offer sheet -->
     <string name="multi_offer_title">Zápis možností</string>
