@@ -36,6 +36,18 @@ class PortalPages(apiBaseUrl: String, employeePortalUrl: String) {
 
     val contacts = PortalPage("$base/nasi/kontakty.php", needsSession = true)
 
+    val meetingMinutes = PortalPage("$base/nasi/zapisyzporad.php", needsSession = true)
+
+    fun files(pairing: Pairing) = PortalPage(
+        url = "$base/nasi/soubory.php".toHttpUrl().newBuilder()
+            .addQueryParameter("provoz", pairing.provoz)
+            .addQueryParameter("id", pairing.id)
+            .addQueryParameter("ids", pairing.ids)
+            .build()
+            .toString(),
+        needsSession = true,
+    )
+
     /** The forum lives on its own host and needs no session. */
     val forum = PortalPage(employeePortalUrl.trimEnd('/') + "/", needsSession = false)
 

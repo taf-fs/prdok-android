@@ -31,6 +31,8 @@ import io.tafdev.prdok.ui.theme.PrdokForAndroidTheme
 enum class PortalLink(@StringRes val label: Int) {
     EMPLOYEE_WEB(R.string.link_employee_web),
     CONTACTS(R.string.link_contacts),
+    MEETING_MINUTES(R.string.link_meeting_minutes),
+    FILES(R.string.link_files),
     FORUM(R.string.link_forum),
 }
 

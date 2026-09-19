@@ -176,6 +176,8 @@ fun MainScreen(
                             openPage = when (link) {
                                 PortalLink.EMPLOYEE_WEB -> pages.employeeWeb(pairing)
                                 PortalLink.CONTACTS -> pages.contacts
+                                PortalLink.MEETING_MINUTES -> pages.meetingMinutes
+                                PortalLink.FILES -> pages.files(pairing)
                                 PortalLink.FORUM -> pages.forum
                             }
                         },
