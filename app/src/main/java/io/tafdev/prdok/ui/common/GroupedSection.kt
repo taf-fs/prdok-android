@@ -53,10 +53,10 @@ fun GroupedSection(
     }
 }
 
-/** A hairline between rows, starting where the text does, as grouped lists draw it. */
+/** A hairline between rows, inset to the same 16 dp as the row's text on both sides. */
 @Composable
 fun GroupedSectionDivider() {
-    HorizontalDivider(Modifier.padding(start = 16.dp))
+    HorizontalDivider(Modifier.padding(horizontal = 16.dp))
 }
 
 /** Rows draw no background of their own; the section's rounded card behind them shows through. */
