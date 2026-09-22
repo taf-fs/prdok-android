@@ -30,7 +30,7 @@ import okhttp3.OkHttpClient
  */
 class AppContainer(context: Context) {
     // One client for the whole app: it keeps a connection pool and threads, so sharing it is cheaper.
-    private val httpClient = OkHttpClient()
+    val httpClient = OkHttpClient()
     val api = PrdokApi(BuildConfig.API_BASE_URL, httpClient)
     val pairingStore: PairingStore = DataStorePairingStore(context)
     // Kept apart from the pairing: unpairing wipes credentials, but the set theme should stay

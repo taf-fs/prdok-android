@@ -36,6 +36,7 @@ import androidx.webkit.WebViewFeature
 @Stable
 class WebPageState internal constructor(
     val webView: WebView,
+    private val showsPdfs: Boolean,
     private val afterPageLoad: (WebView) -> Unit,
 ) {
     /** The page's `<title>`, once it has one. */
@@ -60,6 +61,10 @@ class WebPageState internal constructor(
     var requestedUrl by mutableStateOf<String?>(null)
         private set
 
+    /** The PDF the page opened, waiting to be shown. Always null unless [showsPdfs]. */
+    var openPdf by mutableStateOf<PdfSource?>(null)
+        private set
+
     init {
         // The portal fills its pages over AJAX, so nothing works without JavaScript. Lint warns
         // about it because of XSS in untrusted content; these are the employer's own pages.
@@ -75,6 +80,13 @@ class WebPageState internal constructor(
         webView.settings.displayZoomControls = false
         webView.webViewClient = Client()
         webView.webChromeClient = ChromeClient()
+        // Without a listener here a WebView silently drops every response it can't display,
+        // which is what a download and an opened PDF both look like to it.
+        webView.setDownloadListener { url, userAgent, contentDisposition, mimeType, _ ->
+            val pdf = if (showsPdfs) webView.pdfSource(url, contentDisposition, mimeType) else null
+            if (pdf != null) openPdf = pdf
+            else webView.startDownload(url, userAgent, contentDisposition, mimeType)
+        }
     }
 
     fun load(url: String) {
@@ -85,6 +97,15 @@ class WebPageState internal constructor(
     fun reload() {
         loadFailed = false
         webView.reload()
+    }
+
+    fun closePdf() {
+        openPdf = null
+    }
+
+    /** Saves the open PDF, which until now has only been in the cache. */
+    fun downloadOpenPdf() {
+        openPdf?.let { webView.startDownload(it) }
     }
 
     /** Page lifecycle: start, finish, errors, and which links stay inside the WebView. */
@@ -138,11 +159,14 @@ class WebPageState internal constructor(
  *
  * [profile] gives the page its own cookie jar and storage; on WebViews too old for profiles
  * (before ~2023) it quietly falls back to the shared default one.
- * [configure] runs once on the fresh WebView; [onPageFinished] after every page load.
+ * [showsPdfs] offers a PDF up as [WebPageState.openPdf] instead of downloading it, for a
+ * caller that shows a [PdfScreen]. [configure] runs once on the fresh WebView;
+ * [onPageFinished] after every page load.
  */
 @Composable
 fun rememberWebPageState(
     profile: String? = null,
+    showsPdfs: Boolean = false,
     configure: WebView.() -> Unit = {},
     onPageFinished: (WebView) -> Unit = {},
 ): WebPageState {
@@ -155,7 +179,7 @@ fun rememberWebPageState(
             WebViewCompat.setProfile(webView, profile)
         }
         webView.configure()
-        WebPageState(webView) { view -> currentOnPageFinished(view) }
+        WebPageState(webView, showsPdfs) { view -> currentOnPageFinished(view) }
     }
     DisposableEffect(state) {
         onDispose { state.webView.destroy() }

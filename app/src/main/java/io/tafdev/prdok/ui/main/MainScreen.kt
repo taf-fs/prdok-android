@@ -190,6 +190,7 @@ fun MainScreen(
                 PortalBrowserScreen(
                     page = page,
                     authorize = container.portalSession::authorize,
+                    httpClient = container.httpClient,
                     onClose = { openPage = null },
                 )
             }

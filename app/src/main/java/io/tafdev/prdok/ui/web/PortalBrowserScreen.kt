@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import io.tafdev.prdok.R
 import io.tafdev.prdok.data.portal.PortalPage
 import io.tafdev.prdok.data.portal.PortalSessionException
+import okhttp3.OkHttpClient
 
 private sealed class BrowserLoad {
     data object Authorizing : BrowserLoad()
@@ -58,6 +59,7 @@ private sealed class BrowserLoad {
 fun PortalBrowserScreen(
     page: PortalPage,
     authorize: suspend () -> Unit,
+    httpClient: OkHttpClient,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -75,7 +77,7 @@ fun PortalBrowserScreen(
         }
     }
 
-    val web = rememberWebPageState()
+    val web = rememberWebPageState(showsPdfs = true)
     LaunchedEffect(load) {
         (load as? BrowserLoad.Ready)?.let { web.load(it.url) }
     }
@@ -139,6 +141,17 @@ fun PortalBrowserScreen(
                 )
             }
         }
+    }
+
+    // Over the whole browser, chrome included, so it reads as the document and not a panel in it.
+    web.openPdf?.let { pdf ->
+        PdfScreen(
+            source = pdf,
+            httpClient = httpClient,
+            onDownload = web::downloadOpenPdf,
+            onClose = web::closePdf,
+            modifier = modifier,
+        )
     }
 }
 
