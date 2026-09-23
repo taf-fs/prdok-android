@@ -168,14 +168,27 @@
     <string name="offer_not_found">That offer no longer exists on the server</string>
 
     <!-- Statistics -->
+    <string name="stats_bonus_title">Bonus</string>
     <string name="stats_weekend_hours">Weekend hours</string>
     <string name="stats_closing_shifts">Closing shifts</string>
     <string name="stats_total_hours">Total</string>
-    <!-- Unit words after a "value/required" pair; kept short so the whole row fits one line. -->
+    <string name="stats_meeting">Meeting</string>
+    <string name="stats_early_offers">Offers in time</string>
+    <string name="stats_competencies">Competencies</string>
+    <!-- Unit words after a "value/required" pair; short, so the row fits one line. -->
     <string name="stats_suffix_offered">off.</string>
     <string name="stats_suffix_actual">done</string>
+    <string name="stats_suffix_hours">h</string>
+    <string name="stats_suffix_competencies">comp.</string>
     <string name="stats_or">or</string>
     <string name="stats_planned_inline">(%1$d pln.)</string>
+    <string name="stats_deadline_inline">(by %1$s)</string>
+    <string name="stats_new_competency_inline">(+%1$s)</string>
+    <!-- The meeting row has no numbers; glyphs keep its column as narrow as the others. -->
+    <string name="stats_mark_met">✓</string>
+    <string name="stats_mark_unmet">✗</string>
+    <string name="stats_bonus_expand">Show the bonus conditions</string>
+    <string name="stats_bonus_collapse">Hide the bonus conditions</string>
 
     <!-- Profile -->
     <string name="profile_member_since">Member since %1$s</string>

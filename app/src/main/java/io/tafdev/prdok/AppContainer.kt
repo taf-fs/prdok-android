@@ -3,6 +3,7 @@ package io.tafdev.prdok
 import android.app.Application
 import android.content.Context
 import io.tafdev.prdok.data.api.PrdokApi
+import io.tafdev.prdok.data.bonus.BonusRepository
 import io.tafdev.prdok.data.breaktimer.AlarmManagerBreakAlarmScheduler
 import io.tafdev.prdok.data.breaktimer.BreakTimerManager
 import io.tafdev.prdok.data.breaktimer.DataStoreBreakTimerStore
@@ -44,6 +45,7 @@ class AppContainer(context: Context) {
     private val cacheDir = File(context.cacheDir, "prdok")
     val shiftRepository = ShiftRepository(api, pairingStore, File(cacheDir, "shifts"))
     val openDaysRepository = OpenDaysRepository(api, pairingStore, File(cacheDir, "opendays"))
+    val bonusRepository = BonusRepository(api, pairingStore, File(cacheDir, "bonus"))
     val freeShiftRepository = FreeShiftRepository(api, pairingStore)
     val profileRepository = ProfileRepository(api, pairingStore)
     val shiftCalendarExporter = ShiftCalendarExporter(
@@ -58,6 +60,7 @@ class AppContainer(context: Context) {
         purgeCaches = {
             shiftRepository.clearCache()
             openDaysRepository.clearCache()
+            bonusRepository.clearCache()
             webCookies.clearAll()
         },
     )

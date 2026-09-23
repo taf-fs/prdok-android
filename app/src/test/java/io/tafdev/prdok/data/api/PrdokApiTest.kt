@@ -146,6 +146,40 @@ class PrdokApiTest {
         assertTrue(e.message!!.contains("rokmesic"))
     }
 
+    @Test
+    fun `mzdastruktura sends the month and reads the score`(): Unit = runBlocking {
+        enqueue(
+            """{"err":[],"mzdastruktura":{"historie":1,"kompetence":{"tenhlemesic":"","macount":6},
+              "priplatek":{"skore":5,"maxskore":6,"zoliku":1,"pouzilzoliku":1,"maho":1,"hodnota":20}},
+              "rokmesic":"2026-03"}"""
+        )
+        val bonus = api.fetchBonus("k", "testprovoz", YearMonth.of(2026, 3))
+        assertEquals(5, bonus.score)
+        assertTrue(bonus.earned)
+
+        val body = server.takeRequest().body.readUtf8()
+        assertTrue(body.contains("akce=mzdastruktura"))
+        assertTrue(body.contains("rokmesic=2026-03"))
+    }
+
+    @Test
+    fun `mzdastruktura without a pay structure surfaces the err line`() {
+        enqueue("""{"err":["Chybí nebo neplatný parametr rokmesic (očekávám YYYY-MM)."]}""")
+        val e = assertThrows(PrdokApiException::class.java) {
+            runBlocking { api.fetchBonus("k", "testprovoz", YearMonth.of(2026, 3)) }
+        }
+        assertTrue(e.message!!.contains("rokmesic"))
+    }
+
+    /** The "no employee" gate is the one response that sends `err` as a bare string. */
+    @Test
+    fun `mzdastruktura with a bare-string err throws`() {
+        enqueue("""{"err":"nerozpoznán zaměstnanec."}""")
+        assertThrows(PrdokApiException::class.java) {
+            runBlocking { api.fetchBonus("k", "testprovoz", YearMonth.of(2026, 3)) }
+        }
+    }
+
     // -- transport failures --------------------------------------------------
 
     @Test

@@ -312,7 +312,11 @@ fun CalendarContent(
                     },
                 )
                 ActionRow(enabled = !uiState.isRefreshing, onOfferShifts = onOfferShifts, onExport = onExport)
-                StatisticsBlock(statistics = uiState.statistics, isLoading = uiState.isMonthLoading)
+                StatisticsBlock(
+                    statistics = uiState.statistics,
+                    bonus = uiState.bonus,
+                    isLoading = uiState.isMonthLoading,
+                )
             }
             // Free shifts sit on the secondary background, like the upcoming shifts on Today.
             FreeShiftsSection(

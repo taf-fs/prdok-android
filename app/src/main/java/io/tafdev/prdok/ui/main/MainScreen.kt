@@ -155,6 +155,7 @@ fun MainScreen(
                             CalendarViewModel(
                                 container.shiftRepository,
                                 container.openDaysRepository,
+                                container.bonusRepository,
                                 container.freeShiftRepository,
                             )
                         }

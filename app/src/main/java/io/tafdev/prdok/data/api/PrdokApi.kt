@@ -1,5 +1,7 @@
 package io.tafdev.prdok.data.api
 
+import io.tafdev.prdok.data.bonus.BonusParser
+import io.tafdev.prdok.data.bonus.BonusStructure
 import io.tafdev.prdok.data.model.Credentials
 import io.tafdev.prdok.data.model.FreeShift
 import io.tafdev.prdok.data.model.Shift
@@ -14,6 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import okhttp3.FormBody
 import okhttp3.OkHttpClient
@@ -187,6 +190,25 @@ class PrdokApi(
             ?: throw PrdokApiException(
                 envelope.errMessages.firstOrNull() ?: "Open-day count unavailable"
             )
+    }
+
+    /**
+     * `akce=mzdastruktura` — how [month] scored against the six bonus conditions. Future
+     * months answer normally (zeros and `historie = 3`), so no month is special. Throws
+     * [PrdokApiException] when the server sends no pay structure.
+     */
+    suspend fun fetchBonus(klic: String, provoz: String, month: YearMonth): BonusStructure {
+        val envelope = call(
+            klic, provoz,
+            akce = "mzdastruktura",
+            extras = mapOf("rokmesic" to month.format(MONTH_FORMAT)),
+        )
+        requireEmployee(envelope)
+        val structure = envelope["mzdastruktura"] as? JsonObject
+            ?: throw PrdokApiException(
+                envelope.errMessages.firstOrNull() ?: "Pay structure unavailable"
+            )
+        return BonusParser.parse(structure)
     }
 
     /**

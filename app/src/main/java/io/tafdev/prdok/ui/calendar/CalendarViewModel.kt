@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import io.tafdev.prdok.data.api.OfferOutcome
 import io.tafdev.prdok.data.api.PrdokApiException
 import io.tafdev.prdok.data.api.RemoveOfferOutcome
+import io.tafdev.prdok.data.bonus.BonusRepository
+import io.tafdev.prdok.data.bonus.BonusStructure
 import io.tafdev.prdok.data.model.FreeShift
 import io.tafdev.prdok.data.model.PragueTime
 import io.tafdev.prdok.data.model.Shift
@@ -49,6 +51,12 @@ data class CalendarUiState(
     /** All shifts of [displayedMonth]; feeds the day sheet and the statistics. */
     val monthShifts: List<Shift> = emptyList(),
     val statistics: MonthStatistics? = null,
+    /**
+     * The server's bonus verdict for [displayedMonth]; null while it loads or when the
+     * fetch failed. The statistics above already carry its first three conditions, so this
+     * is here for the header's score and the three rows only the server can state.
+     */
+    val bonus: BonusStructure? = null,
     val freeShifts: FreeShiftsLoad = FreeShiftsLoad.Loading,
     val isMonthLoading: Boolean = false,
     /** The refresh button is running: grid and month buttons are disabled. */
@@ -101,6 +109,7 @@ sealed class CalendarEvent {
 class CalendarViewModel(
     private val shifts: ShiftRepository,
     private val openDays: OpenDaysRepository,
+    private val bonus: BonusRepository,
     private val freeShifts: FreeShiftRepository,
 ) : ViewModel() {
 
@@ -273,9 +282,9 @@ class CalendarViewModel(
     }
 
     /**
-     * Loads the month's shifts and its open-day count side by side. Only the shifts can
-     * fail the load; a missing open-day count just means the statistics use the
-     * calendar day count instead.
+     * Loads the month's shifts, its open-day count and its bonus verdict side by side.
+     * Only the shifts can fail the load: without an open-day count the statistics use the
+     * calendar day count, and without a bonus they fall back to their local computation.
      */
     private suspend fun loadMonthNow(month: YearMonth, force: Boolean) = coroutineScope {
         _uiState.update { it.copy(isMonthLoading = true) }
@@ -289,12 +298,24 @@ class CalendarViewModel(
                     null
                 }
             }
+            val bonusDeferred = async {
+                try {
+                    bonus.bonus(month, force)
+                } catch (e: PrdokApiException) {
+                    null
+                }
+            }
             val list = shiftsDeferred.await()
             val days = openDaysDeferred.await()
+            val structure = bonusDeferred.await()
             _uiState.update { state ->
                 // The user may have paged on while we were loading; don't show a stale month.
                 if (state.displayedMonth != month) return@update state
-                state.copy(monthShifts = list, statistics = MonthStatistics.compute(list, month, days))
+                state.copy(
+                    monthShifts = list,
+                    statistics = MonthStatistics.compute(list, month, days, structure),
+                    bonus = structure,
+                )
             }
         } finally {
             _uiState.update { it.copy(isMonthLoading = false) }
