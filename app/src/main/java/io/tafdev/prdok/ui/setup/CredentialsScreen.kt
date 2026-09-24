@@ -12,7 +12,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -35,6 +34,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.tafdev.prdok.R
+import io.tafdev.prdok.ui.common.DripLoadingAnimation
 
 /**
  * Credentials form with two modes: the three typed fields, or a pasted pairing link.
@@ -155,7 +155,7 @@ fun CredentialsScreen(
             }
 
             if (uiState.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                DripLoadingAnimation(modifier = Modifier.align(Alignment.Center))
             }
         }
     }

@@ -28,7 +28,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -75,6 +74,7 @@ import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import io.tafdev.prdok.R
+import io.tafdev.prdok.ui.common.DripLoadingAnimation
 
 private val BOX_SIZE = 320.dp
 private val BOX_RADIUS = 22.dp
@@ -136,7 +136,7 @@ fun QrScannerScreen(
             CameraNeeded(Modifier.align(Alignment.Center))
         }
 
-        if (uiState.isLoading) ConnectingOverlay(isDark)
+        if (uiState.isLoading) ConnectingOverlay()
 
         CenterAlignedTopAppBar(
             title = {
@@ -319,9 +319,9 @@ private fun scannerCorners(box: Rect, radius: Float, length: Float): Path {
     }
 }
 
-/** A dimmed screen with a spinner on a translucent card while the pairing runs. */
+/** A dimmed screen with the drip mark on a card while the pairing runs. */
 @Composable
-private fun ConnectingOverlay(isDark: Boolean) {
+private fun ConnectingOverlay() {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -330,12 +330,12 @@ private fun ConnectingOverlay(isDark: Boolean) {
     ) {
         Column(
             modifier = Modifier
-                .background(Color.White.copy(alpha = 0.4f), RoundedCornerShape(20.dp))
+                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(20.dp))
                 .padding(30.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            CircularProgressIndicator(color = if (isDark) Color.White else Color.Black)
+            DripLoadingAnimation()
             Text(stringResource(R.string.qr_connecting))
         }
     }

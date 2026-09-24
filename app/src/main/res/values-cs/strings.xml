@@ -39,6 +39,7 @@
     <string name="link_forum">Fórum</string>
 
     <!-- In-app browser -->
+    <string name="browser_authorizing">Připravuji relaci…</string>
     <string name="browser_close">Zavřít</string>
     <string name="browser_reload">Načíst znovu</string>
     <string name="browser_load_failed">Stránku se nepodařilo načíst.</string>

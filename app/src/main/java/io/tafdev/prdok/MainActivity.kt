@@ -7,7 +7,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -16,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.tafdev.prdok.data.pairing.Pairing
 import io.tafdev.prdok.data.settings.ThemePreference
+import io.tafdev.prdok.ui.common.DripLoadingAnimation
 import io.tafdev.prdok.ui.main.MainScreen
 import io.tafdev.prdok.ui.setup.SetupFlow
 import io.tafdev.prdok.ui.theme.PrdokForAndroidTheme
@@ -60,7 +60,7 @@ private fun PrdokRoot(container: AppContainer) {
     when (val state = rootState) {
         RootState.Loading -> Themed(themePreference) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                DripLoadingAnimation()
             }
         }
         is RootState.Ready -> {

@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import io.tafdev.prdok.R
 import io.tafdev.prdok.data.portal.PortalPage
 import io.tafdev.prdok.data.portal.PortalSessionException
+import io.tafdev.prdok.ui.common.DripLoadingAnimation
 import okhttp3.OkHttpClient
 
 private sealed class BrowserLoad {
@@ -115,9 +116,9 @@ fun PortalBrowserScreen(
                         .fillMaxWidth()
                         .height(4.dp)
                 ) {
-                    when {
-                        load is BrowserLoad.Authorizing -> LinearProgressIndicator(Modifier.fillMaxWidth())
-                        web.isLoading -> LinearProgressIndicator(progress = { web.progress }, modifier = Modifier.fillMaxWidth())
+                    // Authorizing has its own cover over the body, so no bar for it here.
+                    if (web.isLoading) {
+                        LinearProgressIndicator(progress = { web.progress }, modifier = Modifier.fillMaxWidth())
                     }
                 }
             }
@@ -131,6 +132,7 @@ fun PortalBrowserScreen(
             WebPage(web, Modifier.fillMaxSize())
             val current = load
             when {
+                current is BrowserLoad.Authorizing -> AuthorizingCover()
                 current is BrowserLoad.Failed -> ErrorCover(
                     message = stringResource(R.string.browser_session_failed, current.detail),
                     onRetry = { attempt++ },
@@ -152,6 +154,27 @@ fun PortalBrowserScreen(
             onClose = web::closePdf,
             modifier = modifier,
         )
+    }
+}
+
+/** Covers the blank WebView while the portal session is being authorized. */
+@Composable
+private fun AuthorizingCover() {
+    Surface(Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            DripLoadingAnimation()
+            Text(
+                text = stringResource(R.string.browser_authorizing),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 

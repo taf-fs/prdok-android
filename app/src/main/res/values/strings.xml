@@ -39,6 +39,7 @@
     <string name="link_forum">Employee forum</string>
 
     <!-- In-app browser -->
+    <string name="browser_authorizing">Preparing session…</string>
     <string name="browser_close">Close</string>
     <string name="browser_reload">Reload</string>
     <string name="browser_load_failed">The page couldn\'t be loaded.</string>

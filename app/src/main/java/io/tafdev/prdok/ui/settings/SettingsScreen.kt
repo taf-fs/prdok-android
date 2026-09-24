@@ -22,7 +22,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.tafdev.prdok.R
+import io.tafdev.prdok.ui.common.DripLoadingAnimation
 import io.tafdev.prdok.ui.common.GroupedRowColors
 import io.tafdev.prdok.ui.common.GroupedSection
 import io.tafdev.prdok.ui.common.GroupedSectionDivider
@@ -171,7 +171,7 @@ fun SettingsScreen(
                         .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.3f)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    CircularProgressIndicator()
+                    DripLoadingAnimation()
                 }
             }
         }
