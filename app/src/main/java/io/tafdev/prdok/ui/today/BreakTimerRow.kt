@@ -73,7 +73,7 @@ import kotlinx.coroutines.delay
 /** The row is seven times as wide as it is tall, whatever the screen width. */
 private const val ROW_ASPECT_RATIO = 7f
 private val TILE_GAP = 8.dp
-private val TILE_SHAPE = RoundedCornerShape(15.dp)
+private val TILE_SHAPE = RoundedCornerShape(16.dp)
 private const val END_TIME_DELAY_MS = 1_500L
 
 /**

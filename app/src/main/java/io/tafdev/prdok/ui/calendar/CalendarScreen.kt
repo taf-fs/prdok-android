@@ -342,6 +342,9 @@ private fun ActionRow(enabled: Boolean, onOfferShifts: () -> Unit, onExport: () 
  * A slimmer Button than Material's default. `heightIn(min = ...)` rather than a fixed height:
  * a minimum from outside switches off the Button's own 40 dp minimum, yet still lets the button
  * grow when the user enlarges the system font.
+ *
+ * The shape is spelled out rather than left to Material, whose default pill sits too close to the
+ * statistics card below it. 12 dp against the card's 16 dp: controls one step tighter than surfaces.
  */
 @Composable
 private fun ActionButton(text: String, enabled: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
@@ -349,6 +352,7 @@ private fun ActionButton(text: String, enabled: Boolean, onClick: () -> Unit, mo
     Button(
         onClick = onClick,
         enabled = enabled,
+        shape = RoundedCornerShape(12.dp),
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
         modifier = modifier.heightIn(min = 36.dp),
     ) {
