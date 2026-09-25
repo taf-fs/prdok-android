@@ -239,10 +239,18 @@
     <string name="settings_feedback_no_email_text">V telefonu není žádná e-mailová aplikace. Zpětnou vazbu můžeš poslat na tuto adresu:</string>
     <string name="settings_feedback_copy">Kopírovat adresu</string>
     <string name="settings_feedback_copied">Adresa zkopírována</string>
+    <string name="settings_about">O aplikaci</string>
     <string name="settings_unpair">Odpárovat zařízení</string>
     <string name="settings_unpair_confirm_title">Odpárovat toto zařízení?</string>
     <string name="settings_unpair_confirm_text">Pro zobrazení směn bude potřeba znovu spárovat.</string>
     <string name="settings_unpair_failed_title">Odpárování selhalo</string>
+
+    <string name="about_platform">Prdok pro Android</string>
+    <string name="about_version">Verze %1$s (%2$d)</string>
+    <string name="about_credits">vyvinul David H. ve spolupráci s Tomášem\ns láskou k lidem v Prostoru 🤎</string>
+    <string name="about_special_thanks">Zvláštní poděkování těm, kteří byli mojí inspirací, nebo se kterými byly super směny:</string>
+    <string name="about_privacy_policy">Ochrana soukromí</string>
+    <string name="about_common_problems">Časté problémy</string>
     <string name="cancel">Zrušit</string>
     <string name="ok">OK</string>
     <string name="retry">Zkusit znovu</string>

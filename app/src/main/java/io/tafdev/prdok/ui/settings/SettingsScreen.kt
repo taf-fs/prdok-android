@@ -58,7 +58,7 @@ import io.tafdev.prdok.ui.common.WithNotificationAccess
 import io.tafdev.prdok.ui.common.notificationsAllowed
 
 /**
- * Settings: app language, colour theme, notifications, feedback, and the destructive unpair, grouped into
+ * Settings: app language, colour theme, notifications, feedback, about, and the destructive unpair, grouped into
  * rounded sections under the same big title the tabs use.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,6 +66,7 @@ import io.tafdev.prdok.ui.common.notificationsAllowed
 fun SettingsScreen(
     viewModel: SettingsViewModel,
     onBack: () -> Unit,
+    onOpenAbout: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -160,6 +161,12 @@ fun SettingsScreen(
                         modifier = Modifier.clickable {
                             if (!context.sendFeedback()) showFeedbackFallback = true
                         },
+                    )
+                    GroupedSectionDivider()
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.settings_about)) },
+                        colors = GroupedRowColors,
+                        modifier = Modifier.clickable(onClick = onOpenAbout),
                     )
                 }
 

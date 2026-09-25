@@ -223,10 +223,18 @@
     <string name="settings_feedback_no_email_text">There\'s no email app on this phone. You can send your feedback to this address:</string>
     <string name="settings_feedback_copy">Copy address</string>
     <string name="settings_feedback_copied">Address copied</string>
+    <string name="settings_about">About</string>
     <string name="settings_unpair">Unpair device</string>
     <string name="settings_unpair_confirm_title">Unpair this device?</string>
     <string name="settings_unpair_confirm_text">You will need to pair again to see your shifts.</string>
     <string name="settings_unpair_failed_title">Unpair failed</string>
+
+    <string name="about_platform">Prdok for Android</string>
+    <string name="about_version">Version %1$s (%2$d)</string>
+    <string name="about_credits">developed by David H. in collaboration with Tomáš\nwith love for the people of Prostor 🤎</string>
+    <string name="about_special_thanks">Special thanks to those who have been an inspiration or joy to work with:</string>
+    <string name="about_privacy_policy">Privacy</string>
+    <string name="about_common_problems">Common problems</string>
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
     <string name="retry">Retry</string>

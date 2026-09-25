@@ -41,6 +41,7 @@ import io.tafdev.prdok.ui.links.LinksScreen
 import io.tafdev.prdok.ui.links.PortalLink
 import io.tafdev.prdok.ui.profile.ProfileScreen
 import io.tafdev.prdok.ui.profile.ProfileViewModel
+import io.tafdev.prdok.ui.settings.AboutScreen
 import io.tafdev.prdok.ui.settings.SettingsScreen
 import io.tafdev.prdok.ui.settings.SettingsViewModel
 import io.tafdev.prdok.ui.theme.PrdokForAndroidTheme
@@ -77,6 +78,7 @@ fun MainScreen(
 ) {
     var selectedTab by rememberSaveable { mutableStateOf(MainTab.TODAY) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
+    var showAbout by rememberSaveable { mutableStateOf(false) }
     var showProfile by rememberSaveable { mutableStateOf(false) }
     var openPage by rememberSaveable(stateSaver = PortalPageSaver) { mutableStateOf<PortalPage?>(null) }
     var ebonyVisited by rememberSaveable { mutableStateOf(false) }
@@ -100,12 +102,24 @@ fun MainScreen(
             return@PrdokForAndroidTheme
         }
 
+        // About opens from Settings and sits on top of it, so back returns to Settings.
+        if (showAbout) {
+            BackHandler { showAbout = false }
+            AboutScreen(onBack = { showAbout = false }, modifier = modifier)
+            return@PrdokForAndroidTheme
+        }
+
         if (showSettings) {
             BackHandler { showSettings = false }
             val settingsViewModel: SettingsViewModel = viewModel {
                 SettingsViewModel(container.pairingManager, container.settingsStore)
             }
-            SettingsScreen(settingsViewModel, onBack = { showSettings = false }, modifier = modifier)
+            SettingsScreen(
+                settingsViewModel,
+                onBack = { showSettings = false },
+                onOpenAbout = { showAbout = true },
+                modifier = modifier,
+            )
             return@PrdokForAndroidTheme
         }
 
