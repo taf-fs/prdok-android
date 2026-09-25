@@ -42,6 +42,7 @@
     <string name="browser_authorizing">Preparing session…</string>
     <string name="browser_close">Close</string>
     <string name="browser_reload">Reload</string>
+    <string name="browser_open_externally">Open in browser</string>
     <string name="browser_load_failed">The page couldn\'t be loaded.</string>
     <string name="browser_session_failed">Couldn\'t sign in to the employee portal: %1$s</string>
     <string name="download_started">Downloading %1$s</string>

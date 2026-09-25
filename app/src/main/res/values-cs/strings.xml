@@ -42,6 +42,7 @@
     <string name="browser_authorizing">Připravuji relaci…</string>
     <string name="browser_close">Zavřít</string>
     <string name="browser_reload">Načíst znovu</string>
+    <string name="browser_open_externally">Otevřít v prohlížeči</string>
     <string name="browser_load_failed">Stránku se nepodařilo načíst.</string>
     <string name="browser_session_failed">Nepodařilo se přihlásit do zaměstnaneckého portálu: %1$s</string>
     <string name="download_started">Stahuji %1$s</string>

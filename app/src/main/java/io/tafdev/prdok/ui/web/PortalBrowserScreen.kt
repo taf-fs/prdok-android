@@ -1,5 +1,8 @@
 package io.tafdev.prdok.ui.web
 
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
@@ -10,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
@@ -31,10 +35,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import io.tafdev.prdok.R
 import io.tafdev.prdok.data.portal.PortalPage
 import io.tafdev.prdok.data.portal.PortalSessionException
@@ -49,7 +55,7 @@ private sealed class BrowserLoad {
 
 /**
  * The in-app browser for portal pages: full screen over the tabs, with close, the page
- * title, a progress bar and reload. Chrome that Safari's sheet gives iOS for free.
+ * title, a progress bar, reload and "open in the phone's browser".
  *
  * A page that needs the session waits for [authorize] first. That state is made right here
  * with produceState instead of in a ViewModel: it belongs to this one opening of the page,
@@ -79,6 +85,7 @@ fun PortalBrowserScreen(
     }
 
     val web = rememberWebPageState(showsPdfs = true)
+    val context = LocalContext.current
     LaunchedEffect(load) {
         (load as? BrowserLoad.Ready)?.let { web.load(it.url) }
     }
@@ -105,6 +112,17 @@ fun PortalBrowserScreen(
                         }
                     },
                     actions = {
+                        // Not offered on session pages: the session cookie lives only in this
+                        // WebView, so the phone's browser would get "neoprávněný přístup".
+                        // The URL is read on tap, so it is the page the user has navigated to.
+                        if (!page.needsSession) {
+                            IconButton(onClick = { context.openInBrowser(web.webView.url ?: page.url) }) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.OpenInNew,
+                                    contentDescription = stringResource(R.string.browser_open_externally),
+                                )
+                            }
+                        }
                         IconButton(onClick = web::reload, enabled = load is BrowserLoad.Ready) {
                             Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.browser_reload))
                         }
@@ -192,5 +210,14 @@ private fun ErrorCover(message: String, onRetry: () -> Unit) {
             Text(message, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
             Button(onClick = onRetry) { Text(stringResource(R.string.retry)) }
         }
+    }
+}
+
+/** Hands [url] to the phone's default browser. */
+private fun Context.openInBrowser(url: String) {
+    try {
+        startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
+    } catch (_: ActivityNotFoundException) {
+        // No browser on the device; the page stays open here, which is the best we can do.
     }
 }
