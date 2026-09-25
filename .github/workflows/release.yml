@@ -1,0 +1,57 @@
+# Pushing a tag like v1.2.3 builds a signed release APK and publishes it as a GitHub Release.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write  # needed to create the release
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      # Recreate the git-ignored secrets.properties and the keystore from repository secrets.
+      - name: Write build secrets
+        env:
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
+          EMPLOYEE_PORTAL_URL: ${{ secrets.EMPLOYEE_PORTAL_URL }}
+          PAIRING_INIT_KEY: ${{ secrets.PAIRING_INIT_KEY }}
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+        run: |
+          echo "$RELEASE_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.jks"
+          {
+            echo "apiBaseURL=$API_BASE_URL"
+            echo "employeePortalURL=$EMPLOYEE_PORTAL_URL"
+            echo "pairingInitKey=$PAIRING_INIT_KEY"
+            echo "releaseSigning.storeFile=$RUNNER_TEMP/release.jks"
+            echo "releaseSigning.keyAlias=prdok"
+            echo "releaseSigning.password=$RELEASE_KEYSTORE_PASSWORD"
+          } > secrets.properties
+
+      - name: Build release APK
+        env:
+          TAG: ${{ github.ref_name }}
+        run: ./gradlew :app:assembleRelease -PappVersion="${TAG#v}"
+
+      # app-release.apk only exists when signing worked (an unsigned build is named
+      # app-release-unsigned.apk), so a missing key fails here instead of publishing.
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          apk="prdok-${TAG#v}.apk"
+          mv app/build/outputs/apk/release/app-release.apk "$apk"
+          gh release create "$TAG" "$apk" --title "Prdok ${TAG#v}" --generate-notes

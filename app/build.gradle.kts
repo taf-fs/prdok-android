@@ -14,6 +14,19 @@ val secrets = Properties().apply {
 
 fun secret(name: String): String = secrets.getProperty(name)?.trim() ?: ""
 
+// The release workflow passes the git tag without its "v" (-PappVersion=1.2.3), and
+// versionCode is derived from it so it grows with every release: 1.2.3 → 10203.
+// Local builds without the property fall back to 1.0 / 1.
+fun versionCodeOf(version: String): Int {
+    val parts = Regex("""(\d+)\.(\d{1,2})\.(\d{1,2})""").matchEntire(version)?.groupValues
+        ?: error("appVersion must look like 1.2.3 (minor and patch below 100), got '$version'")
+    return parts[1].toInt() * 10_000 + parts[2].toInt() * 100 + parts[3].toInt()
+}
+
+val appVersion: String? = providers.gradleProperty("appVersion").orNull
+val appVersionName = appVersion ?: "1.0"
+val appVersionCode = appVersion?.let(::versionCodeOf) ?: 1
+
 android {
     namespace = "io.tafdev.prdok"
     compileSdk {
@@ -24,14 +37,29 @@ android {
         applicationId = "io.tafdev.prdok"
         minSdk = 26
         targetSdk = 37
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = appVersionCode
+        versionName = appVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "API_BASE_URL", "\"${secret("apiBaseURL")}\"")
         buildConfigField("String", "EMPLOYEE_PORTAL_URL", "\"${secret("employeePortalURL")}\"")
         buildConfigField("String", "PAIRING_INIT_KEY", "\"${secret("pairingInitKey")}\"")
+    }
+
+    // Every release must be signed with this same key, or Android refuses to install it
+    // over the previous version. Without releaseSigning.* the release APK comes out unsigned.
+    signingConfigs {
+        val storeFile = secret("releaseSigning.storeFile")
+        if (storeFile.isNotEmpty()) {
+            create("release") {
+                this.storeFile = file(storeFile)
+                // PKCS12 keystores (keytool's default) use one password for the store and the key.
+                storePassword = secret("releaseSigning.password")
+                keyAlias = secret("releaseSigning.keyAlias")
+                keyPassword = secret("releaseSigning.password")
+            }
+        }
     }
 
     buildTypes {
@@ -46,6 +74,7 @@ android {
             buildConfigField("String", "DEV_SKLADNIK", "\"${secret("devCredentials.skladnik")}\"")
         }
         release {
+            signingConfig = signingConfigs.findByName("release")
             optimization {
                 enable = false
             }

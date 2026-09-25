@@ -13,3 +13,7 @@ local.properties
 
 # build-time secrets (see secrets.example.properties)
 secrets.properties
+
+# signing keys, in case one ever lands inside the project
+*.jks
+*.keystore
