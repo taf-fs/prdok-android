@@ -162,7 +162,7 @@ private fun BonusHeader(bonus: BonusStructure?, expanded: Boolean, onToggle: () 
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onToggle),
+        modifier = Modifier.fillMaxWidth().clickable(interactionSource = null, indication = null, onClick = onToggle),
     ) {
         Text(
             text = stringResource(R.string.stats_bonus_title),
