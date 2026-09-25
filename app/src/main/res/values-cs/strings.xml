@@ -231,6 +231,13 @@
     <string name="settings_theme_dark">Tmavý</string>
     <string name="settings_notifications">Oznámení</string>
     <string name="settings_notifications_toggle">Zasílat oznámení</string>
+    <string name="settings_support">Podpora</string>
+    <string name="settings_feedback">Poslat zpětnou vazbu</string>
+    <string name="settings_feedback_prompt">Popiš problém nebo svůj nápad:</string>
+    <string name="settings_feedback_no_email_title">Žádná e-mailová aplikace</string>
+    <string name="settings_feedback_no_email_text">V telefonu není žádná e-mailová aplikace. Zpětnou vazbu můžeš poslat na tuto adresu:</string>
+    <string name="settings_feedback_copy">Kopírovat adresu</string>
+    <string name="settings_feedback_copied">Adresa zkopírována</string>
     <string name="settings_unpair">Odpárovat zařízení</string>
     <string name="settings_unpair_confirm_title">Odpárovat toto zařízení?</string>
     <string name="settings_unpair_confirm_text">Pro zobrazení směn bude potřeba znovu spárovat.</string>

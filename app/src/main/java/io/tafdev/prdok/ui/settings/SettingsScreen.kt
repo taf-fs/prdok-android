@@ -58,7 +58,7 @@ import io.tafdev.prdok.ui.common.WithNotificationAccess
 import io.tafdev.prdok.ui.common.notificationsAllowed
 
 /**
- * Settings: app language, colour theme, notifications, and the destructive unpair, grouped into
+ * Settings: app language, colour theme, notifications, feedback, and the destructive unpair, grouped into
  * rounded sections under the same big title the tabs use.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,6 +74,7 @@ fun SettingsScreen(
     var confirmUnpair by rememberSaveable { mutableStateOf(false) }
     var showThemeSheet by rememberSaveable { mutableStateOf(false) }
     var showLanguageSheet by rememberSaveable { mutableStateOf(false) }
+    var showFeedbackFallback by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
 
     // Runs each time the screen comes back to the front, including on return from the system
@@ -151,6 +152,17 @@ fun SettingsScreen(
                     }
                 }
 
+                GroupedSection(title = stringResource(R.string.settings_support)) {
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.settings_feedback)) },
+                        trailingContent = { Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = null) },
+                        colors = GroupedRowColors,
+                        modifier = Modifier.clickable {
+                            if (!context.sendFeedback()) showFeedbackFallback = true
+                        },
+                    )
+                }
+
                 GroupedSection {
                     ListItem(
                         headlineContent = { Text(stringResource(R.string.settings_unpair)) },
@@ -204,6 +216,10 @@ fun SettingsScreen(
                 modifier = Modifier.padding(vertical = 16.dp),
             )
         }
+    }
+
+    if (showFeedbackFallback) {
+        FeedbackFallbackDialog(onDismiss = { showFeedbackFallback = false })
     }
 
     if (confirmUnpair) {

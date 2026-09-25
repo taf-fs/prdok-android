@@ -215,6 +215,13 @@
     <string name="settings_theme_dark">Dark</string>
     <string name="settings_notifications">Notifications</string>
     <string name="settings_notifications_toggle">Send notifications</string>
+    <string name="settings_support">Support</string>
+    <string name="settings_feedback">Send feedback</string>
+    <string name="settings_feedback_prompt">Describe the problem or your idea:</string>
+    <string name="settings_feedback_no_email_title">No email app</string>
+    <string name="settings_feedback_no_email_text">There\'s no email app on this phone. You can send your feedback to this address:</string>
+    <string name="settings_feedback_copy">Copy address</string>
+    <string name="settings_feedback_copied">Address copied</string>
     <string name="settings_unpair">Unpair device</string>
     <string name="settings_unpair_confirm_title">Unpair this device?</string>
     <string name="settings_unpair_confirm_text">You will need to pair again to see your shifts.</string>
