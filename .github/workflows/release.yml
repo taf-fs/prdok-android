@@ -54,4 +54,8 @@ jobs:
         run: |
           apk="prdok-${TAG#v}.apk"
           mv app/build/outputs/apk/release/app-release.apk "$apk"
-          gh release create "$TAG" "$apk" --title "Prdok ${TAG#v}" --generate-notes
+          # Download instructions for people who've never installed an APK, above the generated changelog.
+          notes="**Jak nainstalovat:** dole v části **Assets** klikni na **$apk**. Stažený soubor otevři a potvrď instalaci.
+
+          **How to install:** under **Assets** below, tap **$apk**. Open the downloaded file and confirm the install."
+          gh release create "$TAG" "$apk" --title "$TAG" --notes "$notes" --generate-notes

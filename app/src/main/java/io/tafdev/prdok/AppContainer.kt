@@ -21,6 +21,8 @@ import io.tafdev.prdok.data.settings.SettingsStore
 import io.tafdev.prdok.data.shifts.FreeShiftRepository
 import io.tafdev.prdok.data.shifts.OpenDaysRepository
 import io.tafdev.prdok.data.shifts.ShiftRepository
+import io.tafdev.prdok.data.update.DataStoreUpdateStore
+import io.tafdev.prdok.data.update.UpdateChecker
 import java.io.File
 import okhttp3.OkHttpClient
 
@@ -36,6 +38,7 @@ class AppContainer(context: Context) {
     val pairingStore: PairingStore = DataStorePairingStore(context)
     // Kept apart from the pairing: unpairing wipes credentials, but the set theme should stay
     val settingsStore: SettingsStore = DataStoreSettingsStore(context)
+    val updateChecker = UpdateChecker(httpClient, DataStoreUpdateStore(context), BuildConfig.VERSION_CODE)
     val breakTimerManager = BreakTimerManager(
         DataStoreBreakTimerStore(context),
         AlarmManagerBreakAlarmScheduler(context),

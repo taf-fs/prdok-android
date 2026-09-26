@@ -251,6 +251,11 @@
     <string name="about_special_thanks">Zvláštní poděkování těm, kteří byli mojí inspirací, nebo se kterými byly super směny:</string>
     <string name="about_privacy_policy">Ochrana soukromí</string>
     <string name="about_common_problems">Časté problémy</string>
+    <string name="about_update">Aktualizace %1$s</string>
+
+    <string name="update_text">Je k dispozici nová verze aplikace (v%1$s).</string>
+    <string name="update_download">Stáhnout</string>
+    <string name="update_later">Později</string>
     <string name="cancel">Zrušit</string>
     <string name="ok">OK</string>
     <string name="retry">Zkusit znovu</string>

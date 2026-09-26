@@ -13,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import io.tafdev.prdok.data.pairing.Pairing
 import io.tafdev.prdok.data.settings.ThemePreference
 import io.tafdev.prdok.ui.common.DripLoadingAnimation
@@ -20,6 +21,8 @@ import io.tafdev.prdok.ui.main.MainScreen
 import io.tafdev.prdok.ui.setup.SetupFlow
 import io.tafdev.prdok.ui.theme.PrdokForAndroidTheme
 import io.tafdev.prdok.ui.theme.SystemBarsAppearance
+import io.tafdev.prdok.ui.update.UpdateDialog
+import io.tafdev.prdok.ui.update.UpdateViewModel
 import kotlinx.coroutines.flow.map
 
 /**
@@ -55,6 +58,10 @@ private fun PrdokRoot(container: AppContainer) {
     val rootState by rootFlow.collectAsStateWithLifecycle(initialValue = RootState.Loading)
     val themePreference by container.settingsStore.theme
         .collectAsStateWithLifecycle(initialValue = ThemePreference.SYSTEM)
+
+    // Up here rather than in MainScreen so an update is offered before pairing too.
+    val updateViewModel: UpdateViewModel = viewModel { UpdateViewModel(container.updateChecker) }
+    Themed(themePreference) { UpdateDialog(updateViewModel) }
 
     // Each branch owns its own Scaffold (top/bottom bars differ), so no outer one here.
     when (val state = rootState) {

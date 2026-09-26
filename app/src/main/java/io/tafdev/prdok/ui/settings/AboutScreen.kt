@@ -1,8 +1,5 @@
 package io.tafdev.prdok.ui.settings
 
-import android.content.ActivityNotFoundException
-import android.content.Context
-import android.content.Intent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -41,12 +38,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import io.tafdev.prdok.BuildConfig
 import io.tafdev.prdok.R
+import io.tafdev.prdok.data.update.AppRelease
 import io.tafdev.prdok.ui.common.GroupedRowColors
 import io.tafdev.prdok.ui.common.GroupedSection
 import io.tafdev.prdok.ui.common.GroupedSectionDivider
+import io.tafdev.prdok.ui.common.openLink
 
 private const val PRIVACY_POLICY_URL = "https://taf-fs.github.io/prdok/"
 
@@ -76,11 +74,13 @@ private const val SECRET_TAPS = 10
 
 /**
  * About the app: logo, platform label and installed version, who made it, and links to
- * the privacy policy and common problems pages. Everything on it is static, so it needs no ViewModel.
+ * the privacy policy and common problems pages. Everything on it is static, so it needs no ViewModel;
+ * [availableUpdate] is handed in from the update check, and adds a download row when it's there.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(
+    availableUpdate: AppRelease?,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -130,6 +130,14 @@ fun AboutScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.secondary,
                 )
+            }
+
+            if (availableUpdate != null) {
+                GroupedSection {
+                    LinkRow(stringResource(R.string.about_update, availableUpdate.version.name)) {
+                        context.openLink(availableUpdate.downloadUrl)
+                    }
+                }
             }
 
             GroupedSection { CreditsCard() }
@@ -210,10 +218,3 @@ private fun LinkRow(title: String, onClick: () -> Unit) {
     )
 }
 
-private fun Context.openLink(url: String) {
-    try {
-        startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
-    } catch (_: ActivityNotFoundException) {
-        // No browser on the phone; nothing sensible left to do.
-    }
-}

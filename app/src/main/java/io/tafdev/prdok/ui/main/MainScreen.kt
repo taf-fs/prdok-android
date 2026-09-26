@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.tafdev.prdok.AppContainer
 import io.tafdev.prdok.R
@@ -105,7 +106,8 @@ fun MainScreen(
         // About opens from Settings and sits on top of it, so back returns to Settings.
         if (showAbout) {
             BackHandler { showAbout = false }
-            AboutScreen(onBack = { showAbout = false }, modifier = modifier)
+            val availableUpdate by container.updateChecker.available.collectAsStateWithLifecycle(initialValue = null)
+            AboutScreen(availableUpdate, onBack = { showAbout = false }, modifier = modifier)
             return@PrdokForAndroidTheme
         }
 

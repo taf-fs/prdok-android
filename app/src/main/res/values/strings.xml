@@ -235,6 +235,11 @@
     <string name="about_special_thanks">Special thanks to those who have been an inspiration or joy to work with:</string>
     <string name="about_privacy_policy">Privacy</string>
     <string name="about_common_problems">Common problems</string>
+    <string name="about_update">Update %1$s</string>
+
+    <string name="update_text">A new version of the app is available (v%1$s).</string>
+    <string name="update_download">Download</string>
+    <string name="update_later">Later</string>
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
     <string name="retry">Retry</string>
