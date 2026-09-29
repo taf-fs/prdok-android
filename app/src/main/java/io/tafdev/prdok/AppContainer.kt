@@ -38,7 +38,12 @@ class AppContainer(context: Context) {
     val pairingStore: PairingStore = DataStorePairingStore(context)
     // Kept apart from the pairing: unpairing wipes credentials, but the set theme should stay
     val settingsStore: SettingsStore = DataStoreSettingsStore(context)
-    val updateChecker = UpdateChecker(httpClient, DataStoreUpdateStore(context), BuildConfig.VERSION_CODE)
+    val updateChecker = UpdateChecker(
+        httpClient,
+        DataStoreUpdateStore(context),
+        BuildConfig.VERSION_CODE,
+        enabled = !BuildConfig.DEBUG,
+    )
     val breakTimerManager = BreakTimerManager(
         DataStoreBreakTimerStore(context),
         AlarmManagerBreakAlarmScheduler(context),

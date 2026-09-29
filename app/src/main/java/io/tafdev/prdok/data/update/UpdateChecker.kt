@@ -20,11 +20,14 @@ const val LATEST_RELEASE_URL = "https://api.github.com/repos/taf-fs/prdok-androi
  * GitHub allows 60 unauthenticated API calls an hour per IP address, and everyone on the same
  * Wi-Fi shares one, so a check runs at most once per [CHECK_INTERVAL]. Whatever it finds is
  * stored, so [available] and [prompt] work offline and survive restarts.
+ *
+ * With [enabled] off it never checks and never offers anything. Debug builds turn it off.
  */
 class UpdateChecker(
     private val client: OkHttpClient,
     private val store: UpdateStore,
     private val installedVersionCode: Int,
+    private val enabled: Boolean = true,
     private val latestReleaseUrl: String = LATEST_RELEASE_URL,
     private val clock: () -> Instant = Instant::now,
 ) {
@@ -41,6 +44,7 @@ class UpdateChecker(
      * silent and not recorded, so the next launch simply tries again.
      */
     suspend fun checkIfDue() {
+        if (!enabled) return
         val now = clock()
         val last = store.state.first().lastCheckedAt
         // A last check "in the future" means the phone's clock was moved back; check anyway.
@@ -75,7 +79,7 @@ class UpdateChecker(
     }
 
     private fun UpdateState.newerRelease(): AppRelease? =
-        latest?.takeIf { it.version.code > installedVersionCode }
+        latest?.takeIf { enabled && it.version.code > installedVersionCode }
 
     companion object {
         val CHECK_INTERVAL: Duration = Duration.ofHours(6)

@@ -64,6 +64,9 @@ android {
 
     buildTypes {
         debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+
             // Debug-only dev pairing (see DevCredentials.kt in src/debug). Release has no
             // such fields at all, so the release source set can't even reference them.
             buildConfigField("boolean", "DEV_CREDENTIALS_ENABLED", secret("devCredentials.enabled").ifEmpty { "false" })

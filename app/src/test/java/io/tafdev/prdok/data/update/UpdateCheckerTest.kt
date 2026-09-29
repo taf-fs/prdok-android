@@ -69,6 +69,26 @@ class UpdateCheckerTest {
     }
 
     @Test
+    fun `a disabled checker skips the network and offers nothing`() = runBlocking {
+        // A release stored before, e.g. by an earlier build of the app.
+        store.current.value = UpdateState(latest = AppRelease(AppVersion.fromTag("v1.1.0")!!, "https://page", null))
+        val checker = UpdateChecker(
+            OkHttpClient(),
+            store,
+            installedVersionCode = 10_000,
+            enabled = false,
+            latestReleaseUrl = server.url("/releases/latest").toString(),
+            clock = { now },
+        )
+
+        checker.checkIfDue()
+
+        assertEquals(0, server.requestCount)
+        assertNull(checker.prompt.first())
+        assertNull(checker.available.first())
+    }
+
+    @Test
     fun `the installed version itself is not offered`() = runBlocking {
         server.enqueue(MockResponse().setBody(releaseJson("v1.0.0")))
         val checker = checker()
